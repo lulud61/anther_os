@@ -662,9 +662,19 @@ function openWindow(id) {
 
     if (id === "admin") {
 
-        loadUsers();
+    loadUsers();
 
     }
+
+
+    // Actualiser les documents
+
+    if (id === "documents") {
+
+    loadDocuments();
+
+    }
+    
 
 }
 
@@ -1270,7 +1280,318 @@ async function checkSession() {
     updatePermissions();
 
 }
+// ==================================================
+// GESTION DES DOCUMENTS GOOGLE DOCS
+// ==================================================
 
+let adminDocuments = [];
+
+
+// ==================================================
+// CHARGER LES DOCUMENTS
+// ==================================================
+
+async function loadDocuments() {
+
+    const documentList =
+        document.getElementById("document-list");
+
+    if (!documentList) {
+        return;
+    }
+
+    documentList.innerHTML =
+        "<p>LOADING DOCUMENTS...</p>";
+
+
+    const { data, error } =
+        await supabaseClient
+            .from("documents")
+            .select("*")
+            .order("created_at", {
+                ascending: false
+            });
+
+
+    if (error) {
+
+        console.error(
+            "DOCUMENT LOAD ERROR:",
+            error
+        );
+
+        documentList.innerHTML =
+            "<p>DATABASE ERROR</p>";
+
+        return;
+    }
+
+
+    adminDocuments = data || [];
+
+    renderDocuments(adminDocuments);
+}
+
+
+
+// ==================================================
+// AFFICHER LES DOCUMENTS
+// ==================================================
+
+function renderDocuments(documents) {
+
+    const documentList =
+        document.getElementById("document-list");
+
+    if (!documentList) {
+        return;
+    }
+
+
+    documentList.innerHTML = "";
+
+
+    if (documents.length === 0) {
+
+        documentList.innerHTML =
+            "<p>NO DOCUMENT FOUND</p>";
+
+        return;
+    }
+
+
+    documents.forEach(function(doc) {
+
+        const container =
+            document.createElement("div");
+
+        container.className = "file";
+
+
+        const info =
+            document.createElement("div");
+
+
+        info.innerHTML =
+            "<strong>📄 " +
+            doc.name +
+            "</strong>" +
+            "<br>" +
+            "<small>GOOGLE DOCS</small>";
+
+
+        container.appendChild(info);
+
+
+        // Bouton ouvrir
+
+        const openButton =
+            document.createElement("button");
+
+
+        openButton.textContent =
+            "OUVRIR";
+
+
+        openButton.onclick =
+            function() {
+
+                window.open(
+                    doc.google_url,
+                    "_blank"
+                );
+
+            };
+
+
+        container.appendChild(openButton);
+
+
+        documentList.appendChild(container);
+
+    });
+
+}
+
+
+
+// ==================================================
+// RECHERCHE DE DOCUMENT
+// ==================================================
+
+function filterDocuments() {
+
+    const searchInput =
+        document.getElementById(
+            "document-search"
+        );
+
+
+    if (!searchInput) {
+        return;
+    }
+
+
+    const search =
+        searchInput.value
+            .trim()
+            .toLowerCase();
+
+
+    if (!search) {
+
+        renderDocuments(
+            adminDocuments
+        );
+
+        return;
+    }
+
+
+    const filteredDocuments =
+        adminDocuments.filter(
+            function(doc) {
+
+                const name =
+                    String(
+                        doc.name || ""
+                    ).toLowerCase();
+
+
+                return name.includes(search);
+
+            }
+        );
+
+
+    renderDocuments(
+        filteredDocuments
+    );
+
+}
+
+
+
+// ==================================================
+// AJOUTER UN DOCUMENT
+// ==================================================
+
+async function addDocument() {
+
+    if (!currentProfile) {
+
+        alert(
+            "YOU MUST BE LOGGED IN"
+        );
+
+        return;
+    }
+
+
+    const nameInput =
+        document.getElementById(
+            "document-name"
+        );
+
+
+    const urlInput =
+        document.getElementById(
+            "document-url"
+        );
+
+
+    const name =
+        nameInput.value.trim();
+
+
+    const url =
+        urlInput.value.trim();
+
+
+    // Vérification
+
+    if (!name || !url) {
+
+        alert(
+            "DOCUMENT NAME AND LINK REQUIRED"
+        );
+
+        return;
+    }
+
+
+    // Vérifier que c'est bien un lien Google
+
+    if (
+        !url.includes(
+            "docs.google.com"
+        )
+    ) {
+
+        alert(
+            "PLEASE ENTER A GOOGLE DOCS LINK"
+        );
+
+        return;
+    }
+
+
+    const { error } =
+        await supabaseClient
+            .from("documents")
+            .insert({
+
+                name: name,
+
+                google_url: url,
+
+                created_by:
+                    currentProfile.id
+
+            });
+
+
+    if (error) {
+    console.error("DOCUMENT ADD ERROR:", error);
+    console.error("MESSAGE:", error.message);
+    console.error("DETAILS:", error.details);
+    console.error("HINT:", error.hint);
+    console.error("CODE:", error.code);
+
+    alert(
+        "ERREUR SUPABASE :\n\n" +
+        error.message
+    );
+
+    return;
+    }   
+
+
+    // Nettoyer les champs
+
+    nameInput.value = "";
+    urlInput.value = "";
+
+
+    // Recharger
+
+    loadDocuments();
+
+}
+
+
+
+// ==================================================
+// OUVERTURE DE LA FENÊTRE DOCUMENTS
+// ==================================================
+
+function openDocuments() {
+
+    openWindow("documents");
+
+    loadDocuments();
+
+}
 
 
 // ==================================================
@@ -1283,3 +1604,5 @@ checkSession();
 console.log(
     "ANTHER OS : JavaScript initialisé"
 );
+
+

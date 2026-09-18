@@ -272,7 +272,22 @@
 
             </div>
 
+            <!-- DOCUMENTS -->
 
+            <div
+                class="app-icon"
+                onclick="openWindow('documents')"
+            >
+
+                <div class="icon">
+                📄
+                </div>
+
+                <span>
+                DOCUMENTS
+                </span>
+
+            </div>
 
             <!-- NETWORK -->
 
@@ -444,7 +459,93 @@
 
         </div>
 
+        <!-- ==================================================
+        FENÊTRE DOCUMENTS
+        ================================================== -->
 
+        <div
+        id="documents"
+        class="window hidden"
+        >
+
+        <div class="window-header">
+
+        DOCUMENTS
+
+        <button
+            onclick="closeWindow('documents')"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="window-content">
+
+        <h2>
+            ANTHER DOCUMENTS
+        </h2>
+
+        <p>
+            GOOGLE DOCUMENT DATABASE
+        </p>
+
+        <hr>
+
+
+        <!-- RECHERCHE -->
+
+        <input
+            type="text"
+            id="document-search"
+            placeholder="Rechercher un document..."
+            autocomplete="off"
+            oninput="filterDocuments()"
+        >
+
+
+        <!-- LISTE DES DOCUMENTS -->
+
+        <div id="document-list">
+
+            <p>
+                LOADING DOCUMENTS...
+            </p>
+
+        </div>
+
+
+        <hr>
+
+
+        <!-- AJOUT -->
+
+        <h3>
+            ADD DOCUMENT
+        </h3>
+
+        <input
+            type="text"
+            id="document-name"
+            placeholder="Nom du document"
+            autocomplete="off"
+        >
+
+        <input
+            type="url"
+            id="document-url"
+            placeholder="Lien Google Docs"
+            autocomplete="off"
+        >
+
+        <button onclick="addDocument()">
+            AJOUTER LE DOCUMENT
+        </button>
+
+    </div>
+
+</div>
 
         <!-- ==================================================
              FENÊTRE NETWORK
