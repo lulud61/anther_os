@@ -11,10 +11,10 @@ console.log("ANTHER OS : script.js chargé");
 // ==================================================
 
 const SUPABASE_URL =
-    "TON_PROJECT_URL";
+    "https://guhswtxnffutpjntwrvk.supabase.co";
 
 const SUPABASE_KEY =
-    "TA_PUBLISHABLE_KEY";
+    "sb_publishable_Pp5lI53LxIJiU2eSaERlLQ_2EYvYtMj";
 
 
 const supabaseClient =
@@ -82,195 +82,254 @@ function showLogin() {
 // ==================================================
 
 async function register() {
-
     console.log("register()");
 
-    const username =
-        document
-            .getElementById("new-username")
-            .value
-            .trim();
+    const usernameInput = document.getElementById("new-username");
+    const passwordInput = document.getElementById("new-password");
+    const confirmInput = document.getElementById("new-password-confirm");
+    const errorBox = document.getElementById("register-error");
 
-    const password =
-        document
-            .getElementById("new-password")
-            .value;
-
-    const confirmPassword =
-        document
-            .getElementById("new-password-confirm")
-            .value;
-
-    const errorBox =
-        document.getElementById("register-error");
-
+    const username = usernameInput.value.trim().toLowerCase();
+    const password = passwordInput.value;
+    const confirmPassword = confirmInput.value;
 
     errorBox.style.color = "#ff6565";
     errorBox.textContent = "";
 
-
-    // ------------------------------
-    // Vérification identifiant
-    // ------------------------------
-
+    // Vérification du pseudo
     if (username.length < 3) {
-
-        errorBox.textContent =
-            "IDENTIFIANT TROP COURT";
-
+        errorBox.textContent = "IDENTIFIANT TROP COURT";
         return;
     }
 
-
-    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-
-        errorBox.textContent =
-            "CARACTÈRES NON AUTORISÉS";
-
+    if (username.length > 20) {
+        errorBox.textContent = "IDENTIFIANT TROP LONG";
         return;
     }
 
+    if (!/^[a-z0-9_-]+$/.test(username)) {
+        errorBox.textContent = "CARACTÈRES NON AUTORISÉS";
+        return;
+    }
 
-    // ------------------------------
-    // Vérification mot de passe
-    // ------------------------------
-
+    // Vérification du mot de passe
     if (password.length < 6) {
-
-        errorBox.textContent =
-            "MOT DE PASSE : 6 CARACTÈRES MINIMUM";
-
+        errorBox.textContent = "MOT DE PASSE : 6 CARACTÈRES MINIMUM";
         return;
     }
-
 
     if (password !== confirmPassword) {
-
-        errorBox.textContent =
-            "LES MOTS DE PASSE NE CORRESPONDENT PAS";
-
+        errorBox.textContent = "LES MOTS DE PASSE NE CORRESPONDENT PAS";
         return;
     }
-
-
-    // ------------------------------
-    // Adresse e-mail interne
-    // ------------------------------
-
-    const email =
-        username.toLowerCase() +
-        "@anther-os.local";
-
 
     try {
 
-        // ------------------------------
-        // Création Supabase Auth
-        // ------------------------------
+        // Vérification si le pseudo existe déjà
+        const { data: existingUser, error: searchError } =
+            await supabaseClient
+                .from("users")
+                .select("id")
+                .eq("username", username)
+                .maybeSingle();
 
+        if (searchError) {
+            console.error("USERNAME CHECK ERROR:", searchError);
+            errorBox.textContent = "ERREUR DATABASE";
+            return;
+        }
+
+        if (existingUser) {
+            errorBox.textContent = "IDENTIFIANT DÉJÀ UTILISÉ";
+            return;
+        }
+
+        // Email interne utilisé uniquement par Supabase
+        const email = username + "@anther-os.local";
+
+        // Création du compte Supabase
         const { data, error } =
             await supabaseClient.auth.signUp({
-
                 email: email,
-
                 password: password
-
             });
 
-
         if (error) {
-
-            console.error(error);
-
-            errorBox.textContent =
-                error.message;
-
+            console.error("SIGNUP ERROR:", error);
+            errorBox.textContent = error.message;
             return;
-
         }
-
 
         if (!data.user) {
-
-            errorBox.textContent =
-                "ERREUR : UTILISATEUR NON CRÉÉ";
-
+            errorBox.textContent = "ERREUR : UTILISATEUR NON CRÉÉ";
             return;
-
         }
 
-
-        // ------------------------------
-        // Création du profil Anther OS
-        // ------------------------------
-
+        // Création du profil ANTHER OS
         const { error: profileError } =
             await supabaseClient
                 .from("users")
                 .insert({
-
                     auth_id: data.user.id,
-
                     username: username,
-
                     name: username.toUpperCase(),
-
                     clearance: 1
-
                 });
 
-
         if (profileError) {
-
-            console.error(profileError);
-
+            console.error("PROFILE ERROR:", profileError);
             errorBox.textContent =
-                "COMPTE AUTH CRÉÉ MAIS PROFIL IMPOSSIBLE À CRÉER";
-
+                "COMPTE CRÉÉ MAIS PROFIL IMPOSSIBLE À CRÉER";
             return;
-
         }
 
-
-        // ------------------------------
-        // Succès
-        // ------------------------------
-
         errorBox.style.color = "#8cff8c";
+        errorBox.textContent = "COMPTE CRÉÉ — ACCÈS ACC-1";
 
-        errorBox.textContent =
-            "COMPTE CRÉÉ — ACCÈS ACC-1";
-
-
-        document
-            .getElementById("new-username")
-            .value = "";
-
-        document
-            .getElementById("new-password")
-            .value = "";
-
-        document
-            .getElementById("new-password-confirm")
-            .value = "";
-
+        usernameInput.value = "";
+        passwordInput.value = "";
+        confirmInput.value = "";
 
         setTimeout(function () {
-
             showLogin();
-
         }, 1500);
-
 
     } catch (error) {
 
-        console.error(error);
-
-        errorBox.textContent =
-            "ERREUR SYSTÈME";
+        console.error("REGISTER ERROR:", error);
+        errorBox.textContent = "ERREUR SYSTÈME";
 
     }
+}
 
+
+// ==================================================
+// CONNEXION
+// ==================================================
+
+async function login() {
+    console.log("login()");
+
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const errorBox = document.getElementById("login-error");
+
+    const username =
+        usernameInput.value.trim().toLowerCase();
+
+    const password =
+        passwordInput.value;
+
+    errorBox.textContent = "";
+
+    if (!username || !password) {
+        errorBox.textContent =
+            "IDENTIFIANT ET MOT DE PASSE REQUIS";
+        return;
+    }
+
+    try {
+
+        // Email interne correspondant au pseudo
+        const email =
+            username + "@anther-os.local";
+
+        const { data, error } =
+            await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+        if (error) {
+            console.error("LOGIN ERROR:", error);
+
+            errorBox.textContent =
+                "IDENTIFIANT OU MOT DE PASSE INCORRECT";
+
+            return;
+        }
+
+        currentUser = data.user;
+
+        // Recherche du profil ANTHER OS
+        const { data: profile, error: profileError } =
+            await supabaseClient
+                .from("users")
+                .select("*")
+                .eq("auth_id", currentUser.id)
+                .single();
+
+        if (profileError) {
+            console.error(
+                "PROFILE LOGIN ERROR:",
+                profileError
+            );
+
+            errorBox.textContent =
+                "PROFIL ANTHER OS INTROUVABLE";
+
+            await supabaseClient.auth.signOut();
+
+            return;
+        }
+
+        currentProfile = profile;
+
+        // Affichage du système
+        document
+            .getElementById("login-screen")
+            .classList.add("hidden");
+
+        document
+            .getElementById("register-screen")
+            .classList.add("hidden");
+
+        document
+            .getElementById("os")
+            .classList.remove("hidden");
+
+        // Informations utilisateur
+        document
+            .getElementById("current-user")
+            .textContent = currentProfile.name;
+
+        document
+            .getElementById("clearance")
+            .textContent =
+                "ACC-" + currentProfile.clearance;
+
+        document
+            .getElementById("system-user")
+            .textContent = currentProfile.name;
+
+        document
+            .getElementById("system-clearance")
+            .textContent =
+                "ACC-" + currentProfile.clearance;
+
+        updatePermissions();
+
+        document
+            .getElementById("system-message")
+            .textContent =
+                "AUTHENTICATION SUCCESSFUL";
+
+        document
+            .getElementById("terminal-output")
+            .innerHTML =
+                "Authentication successful.<br>" +
+                "Welcome " +
+                currentProfile.name +
+                ".<br>";
+
+    } catch (error) {
+
+        console.error("LOGIN SYSTEM ERROR:", error);
+
+        errorBox.textContent =
+            "ERREUR DE CONNEXION";
+
+    }
 }
 
 
