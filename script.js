@@ -1,58 +1,40 @@
 // ==================================================
-// CRUXIS OS - JAVASCRIPT
+// ANTHER OS - JAVASCRIPT
 // ==================================================
 
-console.log("CRUXIS OS : script.js chargé");
+console.log("ANTHER OS : script.js chargé");
+
+
 
 // ==================================================
-// UTILISATEURS
+// SUPABASE
 // ==================================================
 
-const defaultUsers = {
-    admin: {
-        password: "admin123",
-        clearance: 4,
-        name: "SYSTEM ADMIN"
-    },
+const SUPABASE_URL =
+    "TON_PROJECT_URL";
 
-    commander: {
-        password: "cruxis",
-        clearance: 3,
-        name: "COMMANDER"
-    },
+const SUPABASE_KEY =
+    "TA_PUBLISHABLE_KEY";
 
-    engineer: {
-        password: "engineer",
-        clearance: 2,
-        name: "ENGINEER"
-    },
 
-    user: {
-        password: "user",
-        clearance: 1,
-        name: "USER"
-    }
-};
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
 
-let users = {};
 
-try {
-    const savedUsers = localStorage.getItem("cruxisUsers");
+console.log("ANTHER DATABASE : client initialisé");
 
-    if (savedUsers) {
-        users = JSON.parse(savedUsers);
-    } else {
-        users = { ...defaultUsers };
-    }
 
-} catch (error) {
 
-    console.error("Erreur localStorage :", error);
-    users = { ...defaultUsers };
-
-}
+// ==================================================
+// VARIABLES
+// ==================================================
 
 let currentUser = null;
+let currentProfile = null;
+
 
 
 // ==================================================
@@ -61,20 +43,18 @@ let currentUser = null;
 
 function showRegister() {
 
-    console.log("showRegister() exécuté");
+    console.log("showRegister()");
 
-    const loginScreen = document.getElementById("login-screen");
-    const registerScreen = document.getElementById("register-screen");
+    document
+        .getElementById("login-screen")
+        .classList.add("hidden");
 
-    if (!loginScreen || !registerScreen) {
-        console.error("Écran de connexion ou d'inscription introuvable.");
-        return;
-    }
-
-    loginScreen.classList.add("hidden");
-    registerScreen.classList.remove("hidden");
+    document
+        .getElementById("register-screen")
+        .classList.remove("hidden");
 
 }
+
 
 
 // ==================================================
@@ -83,38 +63,56 @@ function showRegister() {
 
 function showLogin() {
 
-    console.log("showLogin() exécuté");
+    console.log("showLogin()");
 
-    const loginScreen = document.getElementById("login-screen");
-    const registerScreen = document.getElementById("register-screen");
+    document
+        .getElementById("register-screen")
+        .classList.add("hidden");
 
-    registerScreen.classList.add("hidden");
-    loginScreen.classList.remove("hidden");
+    document
+        .getElementById("login-screen")
+        .classList.remove("hidden");
 
 }
+
 
 
 // ==================================================
 // CRÉATION DE COMPTE
 // ==================================================
 
-function register() {
+async function register() {
 
-    console.log("register() exécuté");
+    console.log("register()");
 
-    const usernameInput = document.getElementById("new-username");
-    const passwordInput = document.getElementById("new-password");
-    const confirmInput = document.getElementById("new-password-confirm");
-    const errorBox = document.getElementById("register-error");
+    const username =
+        document
+            .getElementById("new-username")
+            .value
+            .trim();
 
-    const username = usernameInput.value.trim();
-    const password = passwordInput.value;
-    const confirmPassword = confirmInput.value;
+    const password =
+        document
+            .getElementById("new-password")
+            .value;
 
+    const confirmPassword =
+        document
+            .getElementById("new-password-confirm")
+            .value;
+
+    const errorBox =
+        document.getElementById("register-error");
+
+
+    errorBox.style.color = "#ff6565";
     errorBox.textContent = "";
 
 
-    // Identifiant trop court
+    // ------------------------------
+    // Vérification identifiant
+    // ------------------------------
+
     if (username.length < 3) {
 
         errorBox.textContent =
@@ -124,7 +122,6 @@ function register() {
     }
 
 
-    // Caractères autorisés
     if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
 
         errorBox.textContent =
@@ -134,27 +131,19 @@ function register() {
     }
 
 
-    // Vérification utilisateur existant
-    if (users[username]) {
+    // ------------------------------
+    // Vérification mot de passe
+    // ------------------------------
+
+    if (password.length < 6) {
 
         errorBox.textContent =
-            "IDENTIFIANT DÉJÀ UTILISÉ";
+            "MOT DE PASSE : 6 CARACTÈRES MINIMUM";
 
         return;
     }
 
 
-    // Mot de passe trop court
-    if (password.length < 4) {
-
-        errorBox.textContent =
-            "MOT DE PASSE TROP COURT";
-
-        return;
-    }
-
-
-    // Confirmation
     if (password !== confirmPassword) {
 
         errorBox.textContent =
@@ -164,147 +153,314 @@ function register() {
     }
 
 
-    // Création
-    users[username] = {
+    // ------------------------------
+    // Adresse e-mail interne
+    // ------------------------------
 
-        password: password,
-
-        clearance: 1,
-
-        name: username.toUpperCase()
-
-    };
+    const email =
+        username.toLowerCase() +
+        "@anther-os.local";
 
 
-    // Sauvegarde
     try {
 
-        localStorage.setItem(
-            "cruxisUsers",
-            JSON.stringify(users)
-        );
+        // ------------------------------
+        // Création Supabase Auth
+        // ------------------------------
+
+        const { data, error } =
+            await supabaseClient.auth.signUp({
+
+                email: email,
+
+                password: password
+
+            });
+
+
+        if (error) {
+
+            console.error(error);
+
+            errorBox.textContent =
+                error.message;
+
+            return;
+
+        }
+
+
+        if (!data.user) {
+
+            errorBox.textContent =
+                "ERREUR : UTILISATEUR NON CRÉÉ";
+
+            return;
+
+        }
+
+
+        // ------------------------------
+        // Création du profil Anther OS
+        // ------------------------------
+
+        const { error: profileError } =
+            await supabaseClient
+                .from("users")
+                .insert({
+
+                    auth_id: data.user.id,
+
+                    username: username,
+
+                    name: username.toUpperCase(),
+
+                    clearance: 1
+
+                });
+
+
+        if (profileError) {
+
+            console.error(profileError);
+
+            errorBox.textContent =
+                "COMPTE AUTH CRÉÉ MAIS PROFIL IMPOSSIBLE À CRÉER";
+
+            return;
+
+        }
+
+
+        // ------------------------------
+        // Succès
+        // ------------------------------
+
+        errorBox.style.color = "#8cff8c";
+
+        errorBox.textContent =
+            "COMPTE CRÉÉ — ACCÈS ACC-1";
+
+
+        document
+            .getElementById("new-username")
+            .value = "";
+
+        document
+            .getElementById("new-password")
+            .value = "";
+
+        document
+            .getElementById("new-password-confirm")
+            .value = "";
+
+
+        setTimeout(function () {
+
+            showLogin();
+
+        }, 1500);
+
 
     } catch (error) {
 
-        console.error(
-            "Impossible de sauvegarder le compte :",
-            error
-        );
+        console.error(error);
+
+        errorBox.textContent =
+            "ERREUR SYSTÈME";
 
     }
 
-
-    // Message
-    errorBox.style.color = "#8cff8c";
-
-    errorBox.textContent =
-        "COMPTE CRÉÉ — ACCÈS ACC-1";
-
-
-    // Nettoyage
-    usernameInput.value = "";
-    passwordInput.value = "";
-    confirmInput.value = "";
-
-
-    // Retour à la connexion
-    setTimeout(function () {
-
-        errorBox.style.color = "";
-        showLogin();
-
-    }, 1500);
-
 }
+
 
 
 // ==================================================
 // CONNEXION
 // ==================================================
 
-function login() {
+async function login() {
 
-    console.log("login() exécuté");
+    console.log("login()");
 
     const username =
-        document.getElementById("username").value.trim();
+        document
+            .getElementById("username")
+            .value
+            .trim()
+            .toLowerCase();
 
     const password =
-        document.getElementById("password").value;
+        document
+            .getElementById("password")
+            .value;
 
     const errorBox =
         document.getElementById("login-error");
 
 
-    if (!users[username]) {
-
-        errorBox.textContent =
-            "IDENTIFIANT OU MOT DE PASSE INCORRECT";
-
-        return;
-    }
-
-
-    if (users[username].password !== password) {
-
-        errorBox.textContent =
-            "IDENTIFIANT OU MOT DE PASSE INCORRECT";
-
-        return;
-    }
-
-
-    // Utilisateur connecté
-    currentUser = users[username];
-
-
-    // Masquer les écrans
-    document
-        .getElementById("login-screen")
-        .classList.add("hidden");
-
-    document
-        .getElementById("register-screen")
-        .classList.add("hidden");
-
-    document
-        .getElementById("os")
-        .classList.remove("hidden");
-
-
-    // Informations utilisateur
-    document.getElementById("current-user").textContent =
-        currentUser.name;
-
-    document.getElementById("clearance").textContent =
-        "ACC-" + currentUser.clearance;
-
-
-    document.getElementById("system-user").textContent =
-        currentUser.name;
-
-    document.getElementById("system-clearance").textContent =
-        "ACC-" + currentUser.clearance;
-
-
-    // Permissions
-    updatePermissions();
-
-
-    // Message
-    document.getElementById("system-message").textContent =
-        "AUTHENTICATION SUCCESSFUL";
-
-
-    // Terminal
-    document.getElementById("terminal-output").innerHTML =
-        "Authentication successful.<br>" +
-        "Welcome " + currentUser.name + ".<br>";
-
-
     errorBox.textContent = "";
 
+
+    if (!username || !password) {
+
+        errorBox.textContent =
+            "IDENTIFIANT ET MOT DE PASSE REQUIS";
+
+        return;
+
+    }
+
+
+    try {
+
+        // ------------------------------
+        // Connexion Supabase
+        // ------------------------------
+
+        const email =
+            username +
+            "@anther-os.local";
+
+
+        const { data, error } =
+            await supabaseClient.auth.signInWithPassword({
+
+                email: email,
+
+                password: password
+
+            });
+
+
+        if (error) {
+
+            console.error(error);
+
+            errorBox.textContent =
+                "IDENTIFIANT OU MOT DE PASSE INCORRECT";
+
+            return;
+
+        }
+
+
+        currentUser = data.user;
+
+
+        // ------------------------------
+        // Récupération du profil
+        // ------------------------------
+
+        const { data: profile, error: profileError } =
+            await supabaseClient
+                .from("users")
+                .select("*")
+                .eq("auth_id", currentUser.id)
+                .single();
+
+
+        if (profileError) {
+
+            console.error(profileError);
+
+            errorBox.textContent =
+                "PROFIL ANTHER OS INTROUVABLE";
+
+            await supabaseClient.auth.signOut();
+
+            return;
+
+        }
+
+
+        currentProfile = profile;
+
+
+        // ------------------------------
+        // Affichage OS
+        // ------------------------------
+
+        document
+            .getElementById("login-screen")
+            .classList.add("hidden");
+
+        document
+            .getElementById("register-screen")
+            .classList.add("hidden");
+
+        document
+            .getElementById("os")
+            .classList.remove("hidden");
+
+
+        // ------------------------------
+        // Informations utilisateur
+        // ------------------------------
+
+        document
+            .getElementById("current-user")
+            .textContent =
+                currentProfile.name;
+
+
+        document
+            .getElementById("clearance")
+            .textContent =
+                "ACC-" +
+                currentProfile.clearance;
+
+
+        document
+            .getElementById("system-user")
+            .textContent =
+                currentProfile.name;
+
+
+        document
+            .getElementById("system-clearance")
+            .textContent =
+                "ACC-" +
+                currentProfile.clearance;
+
+
+        // ------------------------------
+        // Permissions
+        // ------------------------------
+
+        updatePermissions();
+
+
+        // ------------------------------
+        // Message système
+        // ------------------------------
+
+        document
+            .getElementById("system-message")
+            .textContent =
+                "AUTHENTICATION SUCCESSFUL";
+
+
+        document
+            .getElementById("terminal-output")
+            .innerHTML =
+                "Authentication successful.<br>" +
+                "Welcome " +
+                currentProfile.name +
+                ".<br>";
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        errorBox.textContent =
+            "ERREUR DE CONNEXION";
+
+    }
+
 }
+
 
 
 // ==================================================
@@ -317,15 +473,19 @@ function updatePermissions() {
         document.getElementById("admin-icon");
 
 
-    if (!currentUser) {
+    if (!currentProfile) {
 
         adminIcon.classList.add("hidden");
+
         return;
 
     }
 
 
-    if (currentUser.clearance >= 3) {
+    // ACC-2 et supérieur
+    // peuvent accéder à l'administration
+
+    if (currentProfile.clearance >= 2) {
 
         adminIcon.classList.remove("hidden");
 
@@ -338,17 +498,24 @@ function updatePermissions() {
 }
 
 
+
 // ==================================================
 // OUVRIR UNE FENÊTRE
 // ==================================================
 
 function openWindow(id) {
 
+    // ADMIN
+
     if (id === "admin") {
 
-        if (!currentUser || currentUser.clearance < 3) {
+        if (
+            !currentProfile ||
+            currentProfile.clearance < 2
+        ) {
 
             alert("ACCESS DENIED");
+
             return;
 
         }
@@ -362,11 +529,23 @@ function openWindow(id) {
 
     if (windowElement) {
 
-        windowElement.classList.remove("hidden");
+        windowElement
+            .classList
+            .remove("hidden");
+
+    }
+
+
+    // Actualiser la liste des utilisateurs
+
+    if (id === "admin") {
+
+        loadUsers();
 
     }
 
 }
+
 
 
 // ==================================================
@@ -381,11 +560,14 @@ function closeWindow(id) {
 
     if (windowElement) {
 
-        windowElement.classList.add("hidden");
+        windowElement
+            .classList
+            .add("hidden");
 
     }
 
 }
+
 
 
 // ==================================================
@@ -396,49 +578,73 @@ function toggleStart() {
 
     document
         .getElementById("start-menu")
-        .classList.toggle("hidden");
+        .classList
+        .toggle("hidden");
 
 }
+
 
 
 // ==================================================
 // DÉCONNEXION
 // ==================================================
 
-function logout() {
+async function logout() {
+
+    await supabaseClient.auth.signOut();
+
 
     currentUser = null;
+    currentProfile = null;
 
 
     document
         .getElementById("os")
-        .classList.add("hidden");
+        .classList
+        .add("hidden");
+
 
     document
         .getElementById("register-screen")
-        .classList.add("hidden");
+        .classList
+        .add("hidden");
+
 
     document
         .getElementById("login-screen")
-        .classList.remove("hidden");
+        .classList
+        .remove("hidden");
 
 
-    document.getElementById("username").value = "";
-    document.getElementById("password").value = "";
+    document
+        .getElementById("username")
+        .value = "";
 
-    document.getElementById("login-error").textContent = "";
+
+    document
+        .getElementById("password")
+        .value = "";
+
+
+    document
+        .getElementById("login-error")
+        .textContent = "";
 
 
     // Fermer les fenêtres
+
     document
         .querySelectorAll(".window")
-        .forEach(function (windowElement) {
+        .forEach(function(windowElement) {
 
-            windowElement.classList.add("hidden");
+            windowElement
+                .classList
+                .add("hidden");
 
         });
 
 }
+
 
 
 // ==================================================
@@ -449,24 +655,38 @@ function updateClock() {
 
     const now = new Date();
 
+
     const hours =
-        String(now.getHours()).padStart(2, "0");
+        String(now.getHours())
+            .padStart(2, "0");
+
 
     const minutes =
-        String(now.getMinutes()).padStart(2, "0");
+        String(now.getMinutes())
+            .padStart(2, "0");
+
 
     const seconds =
-        String(now.getSeconds()).padStart(2, "0");
+        String(now.getSeconds())
+            .padStart(2, "0");
 
 
-    document.getElementById("system-clock").textContent =
-        hours + ":" + minutes + ":" + seconds;
+    document
+        .getElementById("system-clock")
+        .textContent =
+            hours +
+            ":" +
+            minutes +
+            ":" +
+            seconds;
 
 }
 
 
 setInterval(updateClock, 1000);
+
 updateClock();
+
 
 
 // ==================================================
@@ -476,32 +696,44 @@ updateClock();
 function terminalKey(event) {
 
     if (event.key !== "Enter") {
+
         return;
+
     }
 
 
     const input =
-        document.getElementById("terminal-command");
+        document.getElementById(
+            "terminal-command"
+        );
+
 
     const output =
-        document.getElementById("terminal-output");
+        document.getElementById(
+            "terminal-output"
+        );
 
 
     const command =
-        input.value.trim().toLowerCase();
+        input.value
+            .trim()
+            .toLowerCase();
 
 
     if (!command) {
+
         return;
+
     }
 
 
     output.innerHTML +=
-        "<br>root@cruxis:~$ " +
+        "<br>root@anther:~$ " +
         command;
 
 
     // HELP
+
     if (command === "help") {
 
         output.innerHTML +=
@@ -516,15 +748,16 @@ function terminalKey(event) {
 
 
     // WHOAMI
+
     else if (command === "whoami") {
 
-        if (currentUser) {
+        if (currentProfile) {
 
             output.innerHTML +=
                 "<br>User: " +
-                currentUser.name +
+                currentProfile.name +
                 "<br>Clearance: ACC-" +
-                currentUser.clearance;
+                currentProfile.clearance;
 
         }
 
@@ -532,10 +765,12 @@ function terminalKey(event) {
 
 
     // STATUS
+
     else if (command === "status") {
 
         output.innerHTML +=
-            "<br>CRUXIS OS : ONLINE" +
+            "<br>ANTHER OS : ONLINE" +
+            "<br>DATABASE : ONLINE" +
             "<br>NETWORK : ONLINE" +
             "<br>SECURITY : ACTIVE";
 
@@ -543,6 +778,7 @@ function terminalKey(event) {
 
 
     // CLEAR
+
     else if (command === "clear") {
 
         output.innerHTML = "";
@@ -551,6 +787,7 @@ function terminalKey(event) {
 
 
     // LOGOUT
+
     else if (command === "logout") {
 
         logout();
@@ -559,6 +796,7 @@ function terminalKey(event) {
 
 
     // UNKNOWN
+
     else {
 
         output.innerHTML +=
@@ -572,8 +810,354 @@ function terminalKey(event) {
 }
 
 
+
 // ==================================================
-// FIN
+// GESTION DES UTILISATEURS
 // ==================================================
 
-console.log("CRUXIS OS : JavaScript initialisé");
+async function loadUsers() {
+
+    const userList =
+        document.getElementById("user-list");
+
+
+    if (!userList) {
+
+        return;
+
+    }
+
+
+    userList.innerHTML =
+        "<p>LOADING USERS...</p>";
+
+
+    if (
+        !currentProfile ||
+        currentProfile.clearance < 2
+    ) {
+
+        userList.innerHTML =
+            "<p>ACCESS DENIED</p>";
+
+        return;
+
+    }
+
+
+    const { data, error } =
+        await supabaseClient
+            .from("users")
+            .select("*")
+            .order("clearance", {
+                ascending: false
+            });
+
+
+    if (error) {
+
+        console.error(error);
+
+        userList.innerHTML =
+            "<p>DATABASE ERROR</p>";
+
+        return;
+
+    }
+
+
+    userList.innerHTML = "";
+
+
+    data.forEach(function(user) {
+
+        const container =
+            document.createElement("div");
+
+
+        container.className =
+            "file";
+
+
+        const info =
+            document.createElement("div");
+
+
+        info.innerHTML =
+            "<strong>" +
+            user.name +
+            "</strong>" +
+            "<br>" +
+            user.username +
+            " — ACC-" +
+            user.clearance;
+
+
+        container.appendChild(info);
+
+
+        // Impossible de modifier
+        // un utilisateur de rang égal
+        // ou supérieur
+
+        if (
+            user.id !== currentProfile.id &&
+            user.clearance < currentProfile.clearance
+        ) {
+
+            const select =
+                document.createElement("select");
+
+
+            for (
+                let rank = 1;
+                rank < currentProfile.clearance;
+                rank++
+            ) {
+
+                const option =
+                    document.createElement("option");
+
+
+                option.value = rank;
+
+
+                option.textContent =
+                    "ACC-" + rank;
+
+
+                if (
+                    rank === user.clearance
+                ) {
+
+                    option.selected = true;
+
+                }
+
+
+                select.appendChild(option);
+
+            }
+
+
+            select.onchange =
+                function() {
+
+                    changeRank(
+                        user.id,
+                        Number(select.value)
+                    );
+
+                };
+
+
+            container.appendChild(select);
+
+        }
+
+
+        userList.appendChild(container);
+
+    });
+
+}
+
+
+
+// ==================================================
+// MODIFICATION DU RANG
+// ==================================================
+
+async function changeRank(
+    userId,
+    newRank
+) {
+
+    if (!currentProfile) {
+
+        return;
+
+    }
+
+
+    // ------------------------------
+    // Vérification locale
+    // ------------------------------
+
+    if (
+        newRank < 1 ||
+        newRank >= currentProfile.clearance
+    ) {
+
+        alert("INVALID CLEARANCE");
+
+        loadUsers();
+
+        return;
+
+    }
+
+
+    // ------------------------------
+    // Appel sécurisé Supabase
+    // ------------------------------
+
+    const { error } =
+        await supabaseClient
+            .rpc(
+                "change_user_clearance",
+                {
+                    target_user_id: userId,
+                    new_clearance: newRank
+                }
+            );
+
+
+    // ------------------------------
+    // Erreur
+    // ------------------------------
+
+    if (error) {
+
+        console.error(
+            "CHANGE CLEARANCE ERROR:",
+            error
+        );
+
+        alert(
+            "ACCESS DENIED : " +
+            error.message
+        );
+
+        loadUsers();
+
+        return;
+
+    }
+
+
+    // ------------------------------
+    // Succès
+    // ------------------------------
+
+    console.log(
+        "CLEARANCE UPDATED → ACC-" +
+        newRank
+    );
+
+
+    loadUsers();
+
+}
+
+
+
+// ==================================================
+// DÉTECTION DE SESSION EXISTANTE
+// ==================================================
+
+async function checkSession() {
+
+    const { data } =
+        await supabaseClient
+            .auth
+            .getSession();
+
+
+    if (!data.session) {
+
+        return;
+
+    }
+
+
+    currentUser =
+        data.session.user;
+
+
+    const {
+        data: profile,
+        error
+    } =
+        await supabaseClient
+            .from("users")
+            .select("*")
+            .eq(
+                "auth_id",
+                currentUser.id
+            )
+            .single();
+
+
+    if (
+        error ||
+        !profile
+    ) {
+
+        await supabaseClient
+            .auth
+            .signOut();
+
+        return;
+
+    }
+
+
+    currentProfile =
+        profile;
+
+
+    document
+        .getElementById("login-screen")
+        .classList
+        .add("hidden");
+
+
+    document
+        .getElementById("os")
+        .classList
+        .remove("hidden");
+
+
+    document
+        .getElementById("current-user")
+        .textContent =
+            profile.name;
+
+
+    document
+        .getElementById("clearance")
+        .textContent =
+            "ACC-" +
+            profile.clearance;
+
+
+    document
+        .getElementById("system-user")
+        .textContent =
+            profile.name;
+
+
+    document
+        .getElementById("system-clearance")
+        .textContent =
+            "ACC-" +
+            profile.clearance;
+
+
+    updatePermissions();
+
+}
+
+
+
+// ==================================================
+// INITIALISATION
+// ==================================================
+
+checkSession();
+
+
+console.log(
+    "ANTHER OS : JavaScript initialisé"
+);

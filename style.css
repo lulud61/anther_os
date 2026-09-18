@@ -482,3 +482,32 @@ footer {
     background: #171d21 !important;
     color: white !important;
 }
+
+/* ==================================================
+   USER MANAGEMENT
+   ================================================== */
+
+#user-list {
+    margin-top: 15px;
+}
+
+#user-list .file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    min-height: 60px;
+}
+
+#user-list select {
+    background: #090d10;
+    color: white;
+    border: 1px solid #59636b;
+    padding: 8px;
+    font-family: "Courier New", monospace;
+    cursor: pointer;
+}
+
+#user-list select:hover {
+    background: #171d21;
+}
