@@ -1,9 +1,13 @@
-```javascript
-// =====================================================
-// CRUXIS OS
-// =====================================================
+// ==================================================
+// CRUXIS OS - JAVASCRIPT
+// ==================================================
 
-// Comptes de base
+console.log("CRUXIS OS : script.js chargé");
+
+// ==================================================
+// UTILISATEURS
+// ==================================================
+
 const defaultUsers = {
     admin: {
         password: "admin123",
@@ -30,92 +34,90 @@ const defaultUsers = {
     }
 };
 
-
-// Charger les comptes sauvegardés
-let users;
+let users = {};
 
 try {
-    users = JSON.parse(
-        localStorage.getItem("cruxisUsers")
-    );
+    const savedUsers = localStorage.getItem("cruxisUsers");
 
-    if (!users) {
-        users = defaultUsers;
+    if (savedUsers) {
+        users = JSON.parse(savedUsers);
+    } else {
+        users = { ...defaultUsers };
     }
 
 } catch (error) {
-    users = defaultUsers;
-}
 
+    console.error("Erreur localStorage :", error);
+    users = { ...defaultUsers };
+
+}
 
 let currentUser = null;
 
 
-// =====================================================
-// AFFICHAGE DES ÉCRANS
-// =====================================================
+// ==================================================
+// ÉCRAN DE CRÉATION DE COMPTE
+// ==================================================
 
 function showRegister() {
 
-    document
-        .getElementById("login-screen")
-        .classList.add("hidden");
+    console.log("showRegister() exécuté");
 
-    document
-        .getElementById("register-screen")
-        .classList.remove("hidden");
+    const loginScreen = document.getElementById("login-screen");
+    const registerScreen = document.getElementById("register-screen");
+
+    if (!loginScreen || !registerScreen) {
+        console.error("Écran de connexion ou d'inscription introuvable.");
+        return;
+    }
+
+    loginScreen.classList.add("hidden");
+    registerScreen.classList.remove("hidden");
 
 }
 
+
+// ==================================================
+// RETOUR À LA CONNEXION
+// ==================================================
 
 function showLogin() {
 
-    document
-        .getElementById("register-screen")
-        .classList.add("hidden");
+    console.log("showLogin() exécuté");
 
-    document
-        .getElementById("login-screen")
-        .classList.remove("hidden");
+    const loginScreen = document.getElementById("login-screen");
+    const registerScreen = document.getElementById("register-screen");
+
+    registerScreen.classList.add("hidden");
+    loginScreen.classList.remove("hidden");
 
 }
 
 
-// =====================================================
+// ==================================================
 // CRÉATION DE COMPTE
-// =====================================================
+// ==================================================
 
 function register() {
 
-    const username =
-        document
-            .getElementById("new-username")
-            .value
-            .trim();
+    console.log("register() exécuté");
 
-    const password =
-        document
-            .getElementById("new-password")
-            .value;
+    const usernameInput = document.getElementById("new-username");
+    const passwordInput = document.getElementById("new-password");
+    const confirmInput = document.getElementById("new-password-confirm");
+    const errorBox = document.getElementById("register-error");
 
-    const confirmation =
-        document
-            .getElementById("new-password-confirm")
-            .value;
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmInput.value;
 
-    const error =
-        document.getElementById("register-error");
+    errorBox.textContent = "";
 
 
-    // Réinitialiser le message
-    error.style.color = "#ff6565";
-    error.textContent = "";
-
-
-    // Vérification identifiant
+    // Identifiant trop court
     if (username.length < 3) {
 
-        error.textContent =
+        errorBox.textContent =
             "IDENTIFIANT TROP COURT";
 
         return;
@@ -125,27 +127,27 @@ function register() {
     // Caractères autorisés
     if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
 
-        error.textContent =
+        errorBox.textContent =
             "CARACTÈRES NON AUTORISÉS";
 
         return;
     }
 
 
-    // Compte déjà existant
+    // Vérification utilisateur existant
     if (users[username]) {
 
-        error.textContent =
+        errorBox.textContent =
             "IDENTIFIANT DÉJÀ UTILISÉ";
 
         return;
     }
 
 
-    // Mot de passe
+    // Mot de passe trop court
     if (password.length < 4) {
 
-        error.textContent =
+        errorBox.textContent =
             "MOT DE PASSE TROP COURT";
 
         return;
@@ -153,16 +155,16 @@ function register() {
 
 
     // Confirmation
-    if (password !== confirmation) {
+    if (password !== confirmPassword) {
 
-        error.textContent =
+        errorBox.textContent =
             "LES MOTS DE PASSE NE CORRESPONDENT PAS";
 
         return;
     }
 
 
-    // Créer le compte
+    // Création
     users[username] = {
 
         password: password,
@@ -174,7 +176,7 @@ function register() {
     };
 
 
-    // Sauvegarder
+    // Sauvegarde
     try {
 
         localStorage.setItem(
@@ -182,33 +184,33 @@ function register() {
             JSON.stringify(users)
         );
 
-    } catch (errorStorage) {
+    } catch (error) {
 
-        error.textContent =
-            "ERREUR DE SAUVEGARDE";
+        console.error(
+            "Impossible de sauvegarder le compte :",
+            error
+        );
 
-        return;
     }
 
 
-    // Message de succès
-    error.style.color = "#aaa";
+    // Message
+    errorBox.style.color = "#8cff8c";
 
-    error.textContent =
+    errorBox.textContent =
         "COMPTE CRÉÉ — ACCÈS ACC-1";
 
 
-    // Effacer les champs
-    document.getElementById("new-username").value = "";
-    document.getElementById("new-password").value = "";
-    document.getElementById("new-password-confirm").value = "";
+    // Nettoyage
+    usernameInput.value = "";
+    passwordInput.value = "";
+    confirmInput.value = "";
 
 
-    // Retour au login
+    // Retour à la connexion
     setTimeout(function () {
 
-        error.textContent = "";
-
+        errorBox.style.color = "";
         showLogin();
 
     }, 1500);
@@ -216,34 +218,28 @@ function register() {
 }
 
 
-// =====================================================
+// ==================================================
 // CONNEXION
-// =====================================================
+// ==================================================
 
 function login() {
 
+    console.log("login() exécuté");
+
     const username =
-        document
-            .getElementById("username")
-            .value
-            .trim();
+        document.getElementById("username").value.trim();
 
     const password =
-        document
-            .getElementById("password")
-            .value;
+        document.getElementById("password").value;
 
-    const error =
+    const errorBox =
         document.getElementById("login-error");
-
-
-    error.textContent = "";
 
 
     if (!users[username]) {
 
-        error.textContent =
-            "IDENTIFIANT INCONNU";
+        errorBox.textContent =
+            "IDENTIFIANT OU MOT DE PASSE INCORRECT";
 
         return;
     }
@@ -251,20 +247,18 @@ function login() {
 
     if (users[username].password !== password) {
 
-        error.textContent =
-            "MOT DE PASSE INCORRECT";
+        errorBox.textContent =
+            "IDENTIFIANT OU MOT DE PASSE INCORRECT";
 
         return;
     }
 
 
-    currentUser = {
-        ...users[username],
-        username: username
-    };
+    // Utilisateur connecté
+    currentUser = users[username];
 
 
-    // Afficher le système
+    // Masquer les écrans
     document
         .getElementById("login-screen")
         .classList.add("hidden");
@@ -279,44 +273,43 @@ function login() {
 
 
     // Informations utilisateur
-    document
-        .getElementById("current-user")
-        .textContent =
+    document.getElementById("current-user").textContent =
         currentUser.name;
 
-    document
-        .getElementById("clearance")
-        .textContent =
-        "ACC-" + currentUser.clearance;
-
-    document
-        .getElementById("system-user")
-        .textContent =
-        currentUser.name;
-
-    document
-        .getElementById("system-clearance")
-        .textContent =
+    document.getElementById("clearance").textContent =
         "ACC-" + currentUser.clearance;
 
 
+    document.getElementById("system-user").textContent =
+        currentUser.name;
+
+    document.getElementById("system-clearance").textContent =
+        "ACC-" + currentUser.clearance;
+
+
+    // Permissions
     updatePermissions();
 
-    terminalPrint(
-        "AUTHENTICATION SUCCESSFUL"
-    );
 
-    terminalPrint(
-        "CLEARANCE: ACC-" +
-        currentUser.clearance
-    );
+    // Message
+    document.getElementById("system-message").textContent =
+        "AUTHENTICATION SUCCESSFUL";
+
+
+    // Terminal
+    document.getElementById("terminal-output").innerHTML =
+        "Authentication successful.<br>" +
+        "Welcome " + currentUser.name + ".<br>";
+
+
+    errorBox.textContent = "";
 
 }
 
 
-// =====================================================
+// ==================================================
 // PERMISSIONS
-// =====================================================
+// ==================================================
 
 function updatePermissions() {
 
@@ -324,7 +317,263 @@ function updatePermissions() {
         document.getElementById("admin-icon");
 
 
+    if (!currentUser) {
+
+        adminIcon.classList.add("hidden");
+        return;
+
+    }
+
+
     if (currentUser.clearance >= 3) {
 
-        adminIcon.classList.r
-```
+        adminIcon.classList.remove("hidden");
+
+    } else {
+
+        adminIcon.classList.add("hidden");
+
+    }
+
+}
+
+
+// ==================================================
+// OUVRIR UNE FENÊTRE
+// ==================================================
+
+function openWindow(id) {
+
+    if (id === "admin") {
+
+        if (!currentUser || currentUser.clearance < 3) {
+
+            alert("ACCESS DENIED");
+            return;
+
+        }
+
+    }
+
+
+    const windowElement =
+        document.getElementById(id);
+
+
+    if (windowElement) {
+
+        windowElement.classList.remove("hidden");
+
+    }
+
+}
+
+
+// ==================================================
+// FERMER UNE FENÊTRE
+// ==================================================
+
+function closeWindow(id) {
+
+    const windowElement =
+        document.getElementById(id);
+
+
+    if (windowElement) {
+
+        windowElement.classList.add("hidden");
+
+    }
+
+}
+
+
+// ==================================================
+// MENU START
+// ==================================================
+
+function toggleStart() {
+
+    document
+        .getElementById("start-menu")
+        .classList.toggle("hidden");
+
+}
+
+
+// ==================================================
+// DÉCONNEXION
+// ==================================================
+
+function logout() {
+
+    currentUser = null;
+
+
+    document
+        .getElementById("os")
+        .classList.add("hidden");
+
+    document
+        .getElementById("register-screen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("login-screen")
+        .classList.remove("hidden");
+
+
+    document.getElementById("username").value = "";
+    document.getElementById("password").value = "";
+
+    document.getElementById("login-error").textContent = "";
+
+
+    // Fermer les fenêtres
+    document
+        .querySelectorAll(".window")
+        .forEach(function (windowElement) {
+
+            windowElement.classList.add("hidden");
+
+        });
+
+}
+
+
+// ==================================================
+// HORLOGE
+// ==================================================
+
+function updateClock() {
+
+    const now = new Date();
+
+    const hours =
+        String(now.getHours()).padStart(2, "0");
+
+    const minutes =
+        String(now.getMinutes()).padStart(2, "0");
+
+    const seconds =
+        String(now.getSeconds()).padStart(2, "0");
+
+
+    document.getElementById("system-clock").textContent =
+        hours + ":" + minutes + ":" + seconds;
+
+}
+
+
+setInterval(updateClock, 1000);
+updateClock();
+
+
+// ==================================================
+// TERMINAL
+// ==================================================
+
+function terminalKey(event) {
+
+    if (event.key !== "Enter") {
+        return;
+    }
+
+
+    const input =
+        document.getElementById("terminal-command");
+
+    const output =
+        document.getElementById("terminal-output");
+
+
+    const command =
+        input.value.trim().toLowerCase();
+
+
+    if (!command) {
+        return;
+    }
+
+
+    output.innerHTML +=
+        "<br>root@cruxis:~$ " +
+        command;
+
+
+    // HELP
+    if (command === "help") {
+
+        output.innerHTML +=
+            "<br>Available commands:" +
+            "<br>help" +
+            "<br>whoami" +
+            "<br>status" +
+            "<br>clear" +
+            "<br>logout";
+
+    }
+
+
+    // WHOAMI
+    else if (command === "whoami") {
+
+        if (currentUser) {
+
+            output.innerHTML +=
+                "<br>User: " +
+                currentUser.name +
+                "<br>Clearance: ACC-" +
+                currentUser.clearance;
+
+        }
+
+    }
+
+
+    // STATUS
+    else if (command === "status") {
+
+        output.innerHTML +=
+            "<br>CRUXIS OS : ONLINE" +
+            "<br>NETWORK : ONLINE" +
+            "<br>SECURITY : ACTIVE";
+
+    }
+
+
+    // CLEAR
+    else if (command === "clear") {
+
+        output.innerHTML = "";
+
+    }
+
+
+    // LOGOUT
+    else if (command === "logout") {
+
+        logout();
+
+    }
+
+
+    // UNKNOWN
+    else {
+
+        output.innerHTML +=
+            "<br>Command not found.";
+
+    }
+
+
+    input.value = "";
+
+}
+
+
+// ==================================================
+// FIN
+// ==================================================
+
+console.log("CRUXIS OS : JavaScript initialisé");
