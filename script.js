@@ -5,7 +5,6 @@
 console.log("ANTHER OS : script.js chargé");
 
 
-
 // ==================================================
 // SUPABASE
 // ==================================================
@@ -34,7 +33,7 @@ console.log("ANTHER DATABASE : client initialisé");
 
 let currentUser = null;
 let currentProfile = null;
-
+let adminUsers = [];
 
 
 // ==================================================
@@ -76,132 +75,196 @@ function showLogin() {
 }
 
 
-
 // ==================================================
-// CRÉATION DE COMPTE
+// GESTION DES UTILISATEURS
 // ==================================================
 
-async function register() {
-    console.log("register()");
+async function loadUsers() {
 
-    const usernameInput = document.getElementById("new-username");
-    const passwordInput = document.getElementById("new-password");
-    const confirmInput = document.getElementById("new-password-confirm");
-    const errorBox = document.getElementById("register-error");
+    const userList =
+        document.getElementById("user-list");
 
-    const username = usernameInput.value.trim().toLowerCase();
-    const password = passwordInput.value;
-    const confirmPassword = confirmInput.value;
-
-    errorBox.style.color = "#ff6565";
-    errorBox.textContent = "";
-
-    // Vérification du pseudo
-    if (username.length < 3) {
-        errorBox.textContent = "IDENTIFIANT TROP COURT";
+    if (!userList) {
         return;
     }
 
-    if (username.length > 20) {
-        errorBox.textContent = "IDENTIFIANT TROP LONG";
+    userList.innerHTML =
+        "<p>LOADING USERS...</p>";
+
+    if (
+        !currentProfile ||
+        currentProfile.clearance < 2
+    ) {
+        userList.innerHTML =
+            "<p>ACCESS DENIED</p>";
         return;
     }
 
-    if (!/^[a-z0-9_-]+$/.test(username)) {
-        errorBox.textContent = "CARACTÈRES NON AUTORISÉS";
-        return;
-    }
-
-    // Vérification du mot de passe
-    if (password.length < 6) {
-        errorBox.textContent = "MOT DE PASSE : 6 CARACTÈRES MINIMUM";
-        return;
-    }
-
-    if (password !== confirmPassword) {
-        errorBox.textContent = "LES MOTS DE PASSE NE CORRESPONDENT PAS";
-        return;
-    }
-
-    try {
-
-        // Vérification si le pseudo existe déjà
-        const { data: existingUser, error: searchError } =
-            await supabaseClient
-                .from("users")
-                .select("id")
-                .eq("username", username)
-                .maybeSingle();
-
-        if (searchError) {
-            console.error("USERNAME CHECK ERROR:", searchError);
-            errorBox.textContent = "ERREUR DATABASE";
-            return;
-        }
-
-        if (existingUser) {
-            errorBox.textContent = "IDENTIFIANT DÉJÀ UTILISÉ";
-            return;
-        }
-
-        // Email interne utilisé uniquement par Supabase
-        const email = username + "@anther-os.local";
-
-        // Création du compte Supabase
-        const { data, error } =
-            await supabaseClient.auth.signUp({
-                email: email,
-                password: password
+    const { data, error } =
+        await supabaseClient
+            .from("users")
+            .select("*")
+            .order("clearance", {
+                ascending: false
             });
 
-        if (error) {
-            console.error("SIGNUP ERROR:", error);
-            errorBox.textContent = error.message;
-            return;
-        }
+    if (error) {
 
-        if (!data.user) {
-            errorBox.textContent = "ERREUR : UTILISATEUR NON CRÉÉ";
-            return;
-        }
+        console.error(error);
 
-        // Création du profil ANTHER OS
-        const { error: profileError } =
-            await supabaseClient
-                .from("users")
-                .insert({
-                    auth_id: data.user.id,
-                    username: username,
-                    name: username.toUpperCase(),
-                    clearance: 1
-                });
+        userList.innerHTML =
+            "<p>DATABASE ERROR</p>";
 
-        if (profileError) {
-            console.error("PROFILE ERROR:", profileError);
-            errorBox.textContent =
-                "COMPTE CRÉÉ MAIS PROFIL IMPOSSIBLE À CRÉER";
-            return;
-        }
-
-        errorBox.style.color = "#8cff8c";
-        errorBox.textContent = "COMPTE CRÉÉ — ACCÈS ACC-1";
-
-        usernameInput.value = "";
-        passwordInput.value = "";
-        confirmInput.value = "";
-
-        setTimeout(function () {
-            showLogin();
-        }, 1500);
-
-    } catch (error) {
-
-        console.error("REGISTER ERROR:", error);
-        errorBox.textContent = "ERREUR SYSTÈME";
-
+        return;
     }
+
+    // Sauvegarder tous les utilisateurs
+    adminUsers = data || [];
+
+    // Afficher tous les utilisateurs
+    renderUsers(adminUsers);
 }
 
+// ==================================================
+// AFFICHER LES UTILISATEURS
+// ==================================================
+
+function renderUsers(users) {
+
+    const userList =
+        document.getElementById("user-list");
+
+    if (!userList) {
+        return;
+    }
+
+    userList.innerHTML = "";
+
+    if (users.length === 0) {
+
+        userList.innerHTML =
+            "<p>NO USER FOUND</p>";
+
+        return;
+    }
+
+    users.forEach(function(user) {
+
+        const container =
+            document.createElement("div");
+
+        container.className = "file";
+
+
+        // ==========================================
+        // INFORMATIONS UTILISATEUR
+        // ==========================================
+
+        const info =
+            document.createElement("div");
+
+        info.innerHTML =
+            "<strong>" +
+            user.name +
+            "</strong>" +
+            "<br>" +
+            user.username +
+            " — ACC-" +
+            user.clearance;
+
+        container.appendChild(info);
+
+
+        // ==========================================
+        // MODIFICATION DU RANG
+        // ==========================================
+
+        if (
+            user.id !== currentProfile.id &&
+            user.clearance < currentProfile.clearance
+        ) {
+
+            const select =
+                document.createElement("select");
+
+            for (
+                let rank = 1;
+                rank < currentProfile.clearance;
+                rank++
+            ) {
+
+                const option =
+                    document.createElement("option");
+
+                option.value = rank;
+
+                option.textContent =
+                    "ACC-" + rank;
+
+                if (rank === user.clearance) {
+                    option.selected = true;
+                }
+
+                select.appendChild(option);
+            }
+
+            select.onchange = function() {
+
+                changeRank(
+                    user.id,
+                    Number(select.value)
+                );
+
+            };
+
+            container.appendChild(select);
+        }
+
+        userList.appendChild(container);
+
+    });
+}
+
+
+// ==================================================
+// RECHERCHE UTILISATEUR
+// ==================================================
+
+function filterUsers() {
+
+    const searchInput =
+        document.getElementById("admin-search");
+
+    if (!searchInput) {
+        return;
+    }
+
+    const search =
+        searchInput.value
+            .trim()
+            .toLowerCase();
+
+    if (!search) {
+
+        renderUsers(adminUsers);
+
+        return;
+    }
+
+    const filteredUsers =
+        adminUsers.filter(function(user) {
+
+            return (
+                user.username &&
+                user.username
+                    .toLowerCase()
+                    .includes(search)
+            );
+
+        });
+
+    renderUsers(filteredUsers);
+}
 
 // ==================================================
 // CONNEXION

@@ -251,7 +251,7 @@ header {
 .window {
     position: absolute;
 
-    top: 120px;
+    top: 10px;
     left: 50%;
 
     transform: translateX(-50%);
@@ -510,4 +510,67 @@ footer {
 
 #user-list select:hover {
     background: #171d21;
+}
+
+/* ==================================================
+   ADMIN - RECHERCHE
+   ================================================== */
+
+.admin-search {
+    margin-bottom: 10px;
+}
+
+.admin-search input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+
+    background: #080b0e;
+    color: #d8e0e5;
+
+    border: 1px solid #39444c;
+    outline: none;
+
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.admin-search input:focus {
+    border-color: #7d8c96;
+}
+
+.admin-search input::placeholder {
+    color: #68737a;
+}
+
+
+/* ==================================================
+   ADMIN - LISTE UTILISATEURS
+   ================================================== */
+
+#admin #user-list {
+    max-height: 350px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding-right: 6px;
+}
+
+
+/* Barre de défilement */
+
+#admin #user-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#admin #user-list::-webkit-scrollbar-track {
+    background: #080b0e;
+}
+
+#admin #user-list::-webkit-scrollbar-thumb {
+    background: #39444c;
+}
+
+#admin #user-list::-webkit-scrollbar-thumb:hover {
+    background: #59666f;
 }
