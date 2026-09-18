@@ -1120,80 +1120,74 @@ async function loadDocuments() {
 // AFFICHER LES DOCUMENTS
 // ==================================================
 
-function renderDocuments(
-    documents
-) {
+function renderDocuments(documents) {
 
     const documentList =
-        document.getElementById(
-            "document-list"
-        );
+        document.getElementById("document-list");
 
     if (!documentList) return;
 
     documentList.innerHTML = "";
 
-    if (documents.length === 0) {
+    const accessibleDocuments =
+        documents.filter(function(doc) {
+
+            return (
+                currentProfile &&
+                currentProfile.clearance >=
+                (doc.minimum_clearance || 1)
+            );
+
+        });
+
+    if (accessibleDocuments.length === 0) {
 
         documentList.innerHTML =
-            "<p>NO DOCUMENT FOUND</p>";
+            "<p>NO DOCUMENT AVAILABLE</p>";
 
         return;
     }
 
-    documents.forEach(
-        function(doc) {
+    accessibleDocuments.forEach(function(doc) {
 
-            const container =
-                document.createElement(
-                    "div"
-                );
+        const container =
+            document.createElement("div");
 
-            container.className =
-                "file";
+        container.className = "file";
 
-            const info =
-                document.createElement(
-                    "div"
-                );
+        const info =
+            document.createElement("div");
 
-            info.innerHTML =
-                "<strong>📄 " +
-                (doc.name || "") +
-                "</strong>" +
-                "<br>" +
-                "<small>GOOGLE DOCS</small>";
+        info.innerHTML =
+            "<strong>📄 " +
+            (doc.name || "") +
+            "</strong>" +
+            "<br>" +
+            "<small>ACCESS: ACC-" +
+            (doc.minimum_clearance || 1) +
+            "</small>";
 
-            container.appendChild(
-                info
+        container.appendChild(info);
+
+        const openButton =
+            document.createElement("button");
+
+        openButton.textContent = "OUVRIR";
+
+        openButton.onclick = function() {
+
+            window.open(
+                doc.google_url,
+                "_blank"
             );
 
-            const openButton =
-                document.createElement(
-                    "button"
-                );
+        };
 
-            openButton.textContent =
-                "OUVRIR";
+        container.appendChild(openButton);
 
-            openButton.onclick =
-                function() {
+        documentList.appendChild(container);
 
-                    window.open(
-                        doc.google_url,
-                        "_blank"
-                    );
-                };
-
-            container.appendChild(
-                openButton
-            );
-
-            documentList.appendChild(
-                container
-            );
-        }
-    );
+    });
 }
 
 // ==================================================
@@ -1250,23 +1244,18 @@ function filterDocuments() {
 async function addDocument() {
 
     if (!currentProfile) {
-
-        alert(
-            "YOU MUST BE LOGGED IN"
-        );
-
+        alert("YOU MUST BE LOGGED IN");
         return;
     }
 
     const nameInput =
-        document.getElementById(
-            "document-name"
-        );
+        document.getElementById("document-name");
 
     const urlInput =
-        document.getElementById(
-            "document-url"
-        );
+        document.getElementById("document-url");
+
+    const clearanceInput =
+        document.getElementById("document-clearance");
 
     const name =
         nameInput.value.trim();
@@ -1274,38 +1263,47 @@ async function addDocument() {
     const url =
         urlInput.value.trim();
 
+    const minimumClearance =
+        Number(clearanceInput.value);
+
     if (!name || !url) {
+        alert("DOCUMENT NAME AND LINK REQUIRED");
+        return;
+    }
 
-        alert(
-            "DOCUMENT NAME AND LINK REQUIRED"
-        );
-
+    if (!url.includes("docs.google.com")) {
+        alert("PLEASE ENTER A GOOGLE DOCS LINK");
         return;
     }
 
     if (
-        !url.includes(
-            "docs.google.com"
-        )
+        minimumClearance < 1 ||
+        minimumClearance > 5
     ) {
-
-        alert(
-            "PLEASE ENTER A GOOGLE DOCS LINK"
-        );
-
+        alert("INVALID CLEARANCE");
         return;
     }
 
-    const {
-        error
-    } =
+    // On ne peut pas créer un document
+    // avec un niveau supérieur au sien
+    if (
+        minimumClearance >
+        currentProfile.clearance
+    ) {
+        alert(
+            "YOU CANNOT CREATE A DOCUMENT ABOVE YOUR CLEARANCE"
+        );
+        return;
+    }
+
+    const { error } =
         await supabaseClient
             .from("documents")
             .insert({
                 name: name,
                 google_url: url,
-                created_by:
-                    currentProfile.id
+                created_by: currentProfile.id,
+                minimum_clearance: minimumClearance
             });
 
     if (error) {
@@ -1313,26 +1311,6 @@ async function addDocument() {
         console.error(
             "DOCUMENT ADD ERROR:",
             error
-        );
-
-        console.error(
-            "MESSAGE:",
-            error.message
-        );
-
-        console.error(
-            "DETAILS:",
-            error.details
-        );
-
-        console.error(
-            "HINT:",
-            error.hint
-        );
-
-        console.error(
-            "CODE:",
-            error.code
         );
 
         alert(
@@ -1345,6 +1323,7 @@ async function addDocument() {
 
     nameInput.value = "";
     urlInput.value = "";
+    clearanceInput.value = "1";
 
     loadDocuments();
 }
