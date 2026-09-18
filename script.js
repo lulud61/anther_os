@@ -4,7 +4,6 @@
 
 console.log("ANTHER OS : script.js chargé");
 
-
 // ==================================================
 // SUPABASE
 // ==================================================
@@ -15,17 +14,13 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
     "sb_publishable_Pp5lI53LxIJiU2eSaERlLQ_2EYvYtMj";
 
-
 const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_KEY
     );
 
-
 console.log("ANTHER DATABASE : client initialisé");
-
-
 
 // ==================================================
 // VARIABLES
@@ -33,15 +28,15 @@ console.log("ANTHER DATABASE : client initialisé");
 
 let currentUser = null;
 let currentProfile = null;
-let adminUsers = [];
 
+let adminUsers = [];
+let adminDocuments = [];
 
 // ==================================================
 // ÉCRAN DE CRÉATION DE COMPTE
 // ==================================================
 
 function showRegister() {
-
     console.log("showRegister()");
 
     document
@@ -51,17 +46,13 @@ function showRegister() {
     document
         .getElementById("register-screen")
         .classList.remove("hidden");
-
 }
-
-
 
 // ==================================================
 // RETOUR À LA CONNEXION
 // ==================================================
 
 function showLogin() {
-
     console.log("showLogin()");
 
     document
@@ -71,199 +62,191 @@ function showLogin() {
     document
         .getElementById("login-screen")
         .classList.remove("hidden");
-
 }
 
-
 // ==================================================
-// GESTION DES UTILISATEURS
+// CRÉATION DE COMPTE
 // ==================================================
 
-async function loadUsers() {
+async function register() {
 
-    const userList =
-        document.getElementById("user-list");
+    console.log("register()");
 
-    if (!userList) {
+    const usernameInput =
+        document.getElementById("new-username");
+
+    const passwordInput =
+        document.getElementById("new-password");
+
+    const confirmInput =
+        document.getElementById("new-password-confirm");
+
+    const errorBox =
+        document.getElementById("register-error");
+
+    const username =
+        usernameInput.value.trim();
+
+    const password =
+        passwordInput.value;
+
+    const confirmPassword =
+        confirmInput.value;
+
+    errorBox.textContent = "";
+
+    // ----------------------------------------------
+    // Vérifications
+    // ----------------------------------------------
+
+    if (!username || !password || !confirmPassword) {
+
+        errorBox.textContent =
+            "TOUS LES CHAMPS SONT REQUIS";
+
         return;
     }
 
-    userList.innerHTML =
-        "<p>LOADING USERS...</p>";
+    if (username.length < 3) {
 
-    if (
-        !currentProfile ||
-        currentProfile.clearance < 2
-    ) {
-        userList.innerHTML =
-            "<p>ACCESS DENIED</p>";
+        errorBox.textContent =
+            "LE PSEUDO DOIT CONTENIR AU MOINS 3 CARACTÈRES";
+
         return;
     }
 
-    const { data, error } =
-        await supabaseClient
-            .from("users")
-            .select("*")
-            .order("clearance", {
-                ascending: false
+    if (password.length < 6) {
+
+        errorBox.textContent =
+            "LE MOT DE PASSE DOIT CONTENIR AU MOINS 6 CARACTÈRES";
+
+        return;
+    }
+
+    if (password !== confirmPassword) {
+
+        errorBox.textContent =
+            "LES MOTS DE PASSE NE CORRESPONDENT PAS";
+
+        return;
+    }
+
+    try {
+
+        // ------------------------------------------
+        // Création du compte Supabase Auth
+        // ------------------------------------------
+
+        const email =
+            username.toLowerCase() +
+            "@anther-os.local";
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth.signUp({
+                email: email,
+                password: password
             });
 
-    if (error) {
+        if (error) {
 
-        console.error(error);
-
-        userList.innerHTML =
-            "<p>DATABASE ERROR</p>";
-
-        return;
-    }
-
-    // Sauvegarder tous les utilisateurs
-    adminUsers = data || [];
-
-    // Afficher tous les utilisateurs
-    renderUsers(adminUsers);
-}
-
-// ==================================================
-// AFFICHER LES UTILISATEURS
-// ==================================================
-
-function renderUsers(users) {
-
-    const userList =
-        document.getElementById("user-list");
-
-    if (!userList) {
-        return;
-    }
-
-    userList.innerHTML = "";
-
-    if (users.length === 0) {
-
-        userList.innerHTML =
-            "<p>NO USER FOUND</p>";
-
-        return;
-    }
-
-    users.forEach(function(user) {
-
-        const container =
-            document.createElement("div");
-
-        container.className = "file";
-
-
-        // ==========================================
-        // INFORMATIONS UTILISATEUR
-        // ==========================================
-
-        const info =
-            document.createElement("div");
-
-        info.innerHTML =
-            "<strong>" +
-            user.name +
-            "</strong>" +
-            "<br>" +
-            user.username +
-            " — ACC-" +
-            user.clearance;
-
-        container.appendChild(info);
-
-
-        // ==========================================
-        // MODIFICATION DU RANG
-        // ==========================================
-
-        if (
-            user.id !== currentProfile.id &&
-            user.clearance < currentProfile.clearance
-        ) {
-
-            const select =
-                document.createElement("select");
-
-            for (
-                let rank = 1;
-                rank < currentProfile.clearance;
-                rank++
-            ) {
-
-                const option =
-                    document.createElement("option");
-
-                option.value = rank;
-
-                option.textContent =
-                    "ACC-" + rank;
-
-                if (rank === user.clearance) {
-                    option.selected = true;
-                }
-
-                select.appendChild(option);
-            }
-
-            select.onchange = function() {
-
-                changeRank(
-                    user.id,
-                    Number(select.value)
-                );
-
-            };
-
-            container.appendChild(select);
-        }
-
-        userList.appendChild(container);
-
-    });
-}
-
-
-// ==================================================
-// RECHERCHE UTILISATEUR
-// ==================================================
-
-function filterUsers() {
-
-    const searchInput =
-        document.getElementById("admin-search");
-
-    if (!searchInput) {
-        return;
-    }
-
-    const search =
-        searchInput.value
-            .trim()
-            .toLowerCase();
-
-    if (!search) {
-
-        renderUsers(adminUsers);
-
-        return;
-    }
-
-    const filteredUsers =
-        adminUsers.filter(function(user) {
-
-            return (
-                user.username &&
-                user.username
-                    .toLowerCase()
-                    .includes(search)
+            console.error(
+                "REGISTER AUTH ERROR:",
+                error
             );
 
-        });
+            if (
+                error.message
+                    .toLowerCase()
+                    .includes("already registered")
+            ) {
 
-    renderUsers(filteredUsers);
+                errorBox.textContent =
+                    "CE PSEUDO EST DÉJÀ UTILISÉ";
+
+            } else {
+
+                errorBox.textContent =
+                    "ERREUR : " +
+                    error.message;
+            }
+
+            return;
+        }
+
+        if (!data.user) {
+
+            errorBox.textContent =
+                "COMPTE IMPOSSIBLE À CRÉER";
+
+            return;
+        }
+
+        // ------------------------------------------
+        // Création du profil ANTHER OS
+        // ------------------------------------------
+
+        const {
+            error: profileError
+        } =
+            await supabaseClient
+                .from("users")
+                .insert({
+                    auth_id: data.user.id,
+                    username: username,
+                    name: username.toUpperCase(),
+                    clearance: 1
+                });
+
+        if (profileError) {
+
+            console.error(
+                "REGISTER PROFILE ERROR:",
+                profileError
+            );
+
+            errorBox.textContent =
+                "COMPTE CRÉÉ MAIS PROFIL IMPOSSIBLE À CRÉER";
+
+            return;
+        }
+
+        // ------------------------------------------
+        // Succès
+        // ------------------------------------------
+
+        console.log(
+            "COMPTE CRÉÉ :",
+            username
+        );
+
+        errorBox.textContent =
+            "COMPTE CRÉÉ — ACCÈS ACC-1";
+
+        // Nettoyage
+        usernameInput.value = "";
+        passwordInput.value = "";
+        confirmInput.value = "";
+
+        // Retour à la connexion
+        setTimeout(function() {
+
+            showLogin();
+
+        }, 1500);
+
+    } catch (error) {
+
+        console.error(
+            "REGISTER SYSTEM ERROR:",
+            error
+        );
+
+        errorBox.textContent =
+            "ERREUR LORS DE LA CRÉATION DU COMPTE";
+    }
 }
 
 // ==================================================
@@ -271,14 +254,22 @@ function filterUsers() {
 // ==================================================
 
 async function login() {
+
     console.log("login()");
 
-    const usernameInput = document.getElementById("username");
-    const passwordInput = document.getElementById("password");
-    const errorBox = document.getElementById("login-error");
+    const usernameInput =
+        document.getElementById("username");
+
+    const passwordInput =
+        document.getElementById("password");
+
+    const errorBox =
+        document.getElementById("login-error");
 
     const username =
-        usernameInput.value.trim().toLowerCase();
+        usernameInput.value
+            .trim()
+            .toLowerCase();
 
     const password =
         passwordInput.value;
@@ -286,25 +277,35 @@ async function login() {
     errorBox.textContent = "";
 
     if (!username || !password) {
+
         errorBox.textContent =
             "IDENTIFIANT ET MOT DE PASSE REQUIS";
+
         return;
     }
 
     try {
 
-        // Email interne correspondant au pseudo
         const email =
-            username + "@anther-os.local";
+            username +
+            "@anther-os.local";
 
-        const { data, error } =
-            await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth
+                .signInWithPassword({
+                    email: email,
+                    password: password
+                });
 
         if (error) {
-            console.error("LOGIN ERROR:", error);
+
+            console.error(
+                "LOGIN ERROR:",
+                error
+            );
 
             errorBox.textContent =
                 "IDENTIFIANT OU MOT DE PASSE INCORRECT";
@@ -312,17 +313,28 @@ async function login() {
             return;
         }
 
-        currentUser = data.user;
+        currentUser =
+            data.user;
 
-        // Recherche du profil ANTHER OS
-        const { data: profile, error: profileError } =
+        // ------------------------------------------
+        // Récupération du profil
+        // ------------------------------------------
+
+        const {
+            data: profile,
+            error: profileError
+        } =
             await supabaseClient
                 .from("users")
                 .select("*")
-                .eq("auth_id", currentUser.id)
+                .eq(
+                    "auth_id",
+                    currentUser.id
+                )
                 .single();
 
         if (profileError) {
+
             console.error(
                 "PROFILE LOGIN ERROR:",
                 profileError
@@ -336,172 +348,12 @@ async function login() {
             return;
         }
 
-        currentProfile = profile;
+        currentProfile =
+            profile;
 
+        // ------------------------------------------
         // Affichage du système
-        document
-            .getElementById("login-screen")
-            .classList.add("hidden");
-
-        document
-            .getElementById("register-screen")
-            .classList.add("hidden");
-
-        document
-            .getElementById("os")
-            .classList.remove("hidden");
-
-        // Informations utilisateur
-        document
-            .getElementById("current-user")
-            .textContent = currentProfile.name;
-
-        document
-            .getElementById("clearance")
-            .textContent =
-                "ACC-" + currentProfile.clearance;
-
-        document
-            .getElementById("system-user")
-            .textContent = currentProfile.name;
-
-        document
-            .getElementById("system-clearance")
-            .textContent =
-                "ACC-" + currentProfile.clearance;
-
-        updatePermissions();
-
-        document
-            .getElementById("system-message")
-            .textContent =
-                "AUTHENTICATION SUCCESSFUL";
-
-        document
-            .getElementById("terminal-output")
-            .innerHTML =
-                "Authentication successful.<br>" +
-                "Welcome " +
-                currentProfile.name +
-                ".<br>";
-
-    } catch (error) {
-
-        console.error("LOGIN SYSTEM ERROR:", error);
-
-        errorBox.textContent =
-            "ERREUR DE CONNEXION";
-
-    }
-}
-
-
-
-// ==================================================
-// CONNEXION
-// ==================================================
-
-async function login() {
-
-    console.log("login()");
-
-    const username =
-        document
-            .getElementById("username")
-            .value
-            .trim()
-            .toLowerCase();
-
-    const password =
-        document
-            .getElementById("password")
-            .value;
-
-    const errorBox =
-        document.getElementById("login-error");
-
-
-    errorBox.textContent = "";
-
-
-    if (!username || !password) {
-
-        errorBox.textContent =
-            "IDENTIFIANT ET MOT DE PASSE REQUIS";
-
-        return;
-
-    }
-
-
-    try {
-
-        // ------------------------------
-        // Connexion Supabase
-        // ------------------------------
-
-        const email =
-            username +
-            "@anther-os.local";
-
-
-        const { data, error } =
-            await supabaseClient.auth.signInWithPassword({
-
-                email: email,
-
-                password: password
-
-            });
-
-
-        if (error) {
-
-            console.error(error);
-
-            errorBox.textContent =
-                "IDENTIFIANT OU MOT DE PASSE INCORRECT";
-
-            return;
-
-        }
-
-
-        currentUser = data.user;
-
-
-        // ------------------------------
-        // Récupération du profil
-        // ------------------------------
-
-        const { data: profile, error: profileError } =
-            await supabaseClient
-                .from("users")
-                .select("*")
-                .eq("auth_id", currentUser.id)
-                .single();
-
-
-        if (profileError) {
-
-            console.error(profileError);
-
-            errorBox.textContent =
-                "PROFIL ANTHER OS INTROUVABLE";
-
-            await supabaseClient.auth.signOut();
-
-            return;
-
-        }
-
-
-        currentProfile = profile;
-
-
-        // ------------------------------
-        // Affichage OS
-        // ------------------------------
+        // ------------------------------------------
 
         document
             .getElementById("login-screen")
@@ -515,75 +367,54 @@ async function login() {
             .getElementById("os")
             .classList.remove("hidden");
 
-
-        // ------------------------------
-        // Informations utilisateur
-        // ------------------------------
-
         document
             .getElementById("current-user")
             .textContent =
-                currentProfile.name;
-
+            currentProfile.name;
 
         document
             .getElementById("clearance")
             .textContent =
-                "ACC-" +
-                currentProfile.clearance;
-
+            "ACC-" +
+            currentProfile.clearance;
 
         document
             .getElementById("system-user")
             .textContent =
-                currentProfile.name;
-
+            currentProfile.name;
 
         document
             .getElementById("system-clearance")
             .textContent =
-                "ACC-" +
-                currentProfile.clearance;
-
-
-        // ------------------------------
-        // Permissions
-        // ------------------------------
+            "ACC-" +
+            currentProfile.clearance;
 
         updatePermissions();
-
-
-        // ------------------------------
-        // Message système
-        // ------------------------------
 
         document
             .getElementById("system-message")
             .textContent =
-                "AUTHENTICATION SUCCESSFUL";
-
+            "AUTHENTICATION SUCCESSFUL";
 
         document
             .getElementById("terminal-output")
             .innerHTML =
-                "Authentication successful.<br>" +
-                "Welcome " +
-                currentProfile.name +
-                ".<br>";
-
+            "Authentication successful.<br>" +
+            "Welcome " +
+            currentProfile.name +
+            ".<br>";
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "LOGIN SYSTEM ERROR:",
+            error
+        );
 
         errorBox.textContent =
             "ERREUR DE CONNEXION";
-
     }
-
 }
-
-
 
 // ==================================================
 // PERMISSIONS
@@ -594,18 +425,14 @@ function updatePermissions() {
     const adminIcon =
         document.getElementById("admin-icon");
 
+    if (!adminIcon) return;
 
     if (!currentProfile) {
 
         adminIcon.classList.add("hidden");
 
         return;
-
     }
-
-
-    // ACC-2 et supérieur
-    // peuvent accéder à l'administration
 
     if (currentProfile.clearance >= 2) {
 
@@ -614,20 +441,14 @@ function updatePermissions() {
     } else {
 
         adminIcon.classList.add("hidden");
-
     }
-
 }
-
-
 
 // ==================================================
 // OUVRIR UNE FENÊTRE
 // ==================================================
 
 function openWindow(id) {
-
-    // ADMIN
 
     if (id === "admin") {
 
@@ -639,46 +460,29 @@ function openWindow(id) {
             alert("ACCESS DENIED");
 
             return;
-
         }
-
     }
-
 
     const windowElement =
         document.getElementById(id);
-
 
     if (windowElement) {
 
         windowElement
             .classList
             .remove("hidden");
-
     }
-
-
-    // Actualiser la liste des utilisateurs
 
     if (id === "admin") {
 
-    loadUsers();
-
+        loadUsers();
     }
-
-
-    // Actualiser les documents
 
     if (id === "documents") {
 
-    loadDocuments();
-
+        loadDocuments();
     }
-    
-
 }
-
-
 
 // ==================================================
 // FERMER UNE FENÊTRE
@@ -689,18 +493,13 @@ function closeWindow(id) {
     const windowElement =
         document.getElementById(id);
 
-
     if (windowElement) {
 
         windowElement
             .classList
             .add("hidden");
-
     }
-
 }
-
-
 
 // ==================================================
 // MENU START
@@ -712,10 +511,7 @@ function toggleStart() {
         .getElementById("start-menu")
         .classList
         .toggle("hidden");
-
 }
-
-
 
 // ==================================================
 // DÉCONNEXION
@@ -723,47 +519,39 @@ function toggleStart() {
 
 async function logout() {
 
-    await supabaseClient.auth.signOut();
-
+    await supabaseClient
+        .auth
+        .signOut();
 
     currentUser = null;
     currentProfile = null;
-
 
     document
         .getElementById("os")
         .classList
         .add("hidden");
 
-
     document
         .getElementById("register-screen")
         .classList
         .add("hidden");
-
 
     document
         .getElementById("login-screen")
         .classList
         .remove("hidden");
 
-
     document
         .getElementById("username")
         .value = "";
-
 
     document
         .getElementById("password")
         .value = "";
 
-
     document
         .getElementById("login-error")
         .textContent = "";
-
-
-    // Fermer les fenêtres
 
     document
         .querySelectorAll(".window")
@@ -772,12 +560,8 @@ async function logout() {
             windowElement
                 .classList
                 .add("hidden");
-
         });
-
 }
-
-
 
 // ==================================================
 // HORLOGE
@@ -785,41 +569,43 @@ async function logout() {
 
 function updateClock() {
 
-    const now = new Date();
-
+    const now =
+        new Date();
 
     const hours =
         String(now.getHours())
             .padStart(2, "0");
 
-
     const minutes =
         String(now.getMinutes())
             .padStart(2, "0");
-
 
     const seconds =
         String(now.getSeconds())
             .padStart(2, "0");
 
+    const clock =
+        document.getElementById(
+            "system-clock"
+        );
 
-    document
-        .getElementById("system-clock")
-        .textContent =
+    if (clock) {
+
+        clock.textContent =
             hours +
             ":" +
             minutes +
             ":" +
             seconds;
-
+    }
 }
 
-
-setInterval(updateClock, 1000);
+setInterval(
+    updateClock,
+    1000
+);
 
 updateClock();
-
-
 
 // ==================================================
 // TERMINAL
@@ -827,44 +613,28 @@ updateClock();
 
 function terminalKey(event) {
 
-    if (event.key !== "Enter") {
-
-        return;
-
-    }
-
+    if (event.key !== "Enter") return;
 
     const input =
         document.getElementById(
             "terminal-command"
         );
 
-
     const output =
         document.getElementById(
             "terminal-output"
         );
-
 
     const command =
         input.value
             .trim()
             .toLowerCase();
 
-
-    if (!command) {
-
-        return;
-
-    }
-
+    if (!command) return;
 
     output.innerHTML +=
         "<br>root@anther:~$ " +
         command;
-
-
-    // HELP
 
     if (command === "help") {
 
@@ -876,12 +646,7 @@ function terminalKey(event) {
             "<br>clear" +
             "<br>logout";
 
-    }
-
-
-    // WHOAMI
-
-    else if (command === "whoami") {
+    } else if (command === "whoami") {
 
         if (currentProfile) {
 
@@ -890,15 +655,9 @@ function terminalKey(event) {
                 currentProfile.name +
                 "<br>Clearance: ACC-" +
                 currentProfile.clearance;
-
         }
 
-    }
-
-
-    // STATUS
-
-    else if (command === "status") {
+    } else if (command === "status") {
 
         output.innerHTML +=
             "<br>ANTHER OS : ONLINE" +
@@ -906,42 +665,22 @@ function terminalKey(event) {
             "<br>NETWORK : ONLINE" +
             "<br>SECURITY : ACTIVE";
 
-    }
-
-
-    // CLEAR
-
-    else if (command === "clear") {
+    } else if (command === "clear") {
 
         output.innerHTML = "";
 
-    }
-
-
-    // LOGOUT
-
-    else if (command === "logout") {
+    } else if (command === "logout") {
 
         logout();
 
-    }
-
-
-    // UNKNOWN
-
-    else {
+    } else {
 
         output.innerHTML +=
             "<br>Command not found.";
-
     }
 
-
     input.value = "";
-
 }
-
-
 
 // ==================================================
 // GESTION DES UTILISATEURS
@@ -950,19 +689,14 @@ function terminalKey(event) {
 async function loadUsers() {
 
     const userList =
-        document.getElementById("user-list");
+        document.getElementById(
+            "user-list"
+        );
 
-
-    if (!userList) {
-
-        return;
-
-    }
-
+    if (!userList) return;
 
     userList.innerHTML =
         "<p>LOADING USERS...</p>";
-
 
     if (
         !currentProfile ||
@@ -973,128 +707,214 @@ async function loadUsers() {
             "<p>ACCESS DENIED</p>";
 
         return;
-
     }
 
-
-    const { data, error } =
+    const {
+        data,
+        error
+    } =
         await supabaseClient
             .from("users")
             .select("*")
-            .order("clearance", {
-                ascending: false
-            });
-
+            .order(
+                "clearance",
+                {
+                    ascending: false
+                }
+            );
 
     if (error) {
 
-        console.error(error);
+        console.error(
+            "USERS LOAD ERROR:",
+            error
+        );
 
         userList.innerHTML =
             "<p>DATABASE ERROR</p>";
 
         return;
-
     }
 
+    adminUsers =
+        data || [];
+
+    renderUsers(
+        adminUsers
+    );
+}
+
+// ==================================================
+// AFFICHER LES UTILISATEURS
+// ==================================================
+
+function renderUsers(users) {
+
+    const userList =
+        document.getElementById(
+            "user-list"
+        );
+
+    if (!userList) return;
 
     userList.innerHTML = "";
 
+    if (users.length === 0) {
 
-    data.forEach(function(user) {
+        userList.innerHTML =
+            "<p>NO USER FOUND</p>";
 
-        const container =
-            document.createElement("div");
+        return;
+    }
 
+    users.forEach(
+        function(user) {
 
-        container.className =
-            "file";
+            const container =
+                document.createElement(
+                    "div"
+                );
 
+            container.className =
+                "file";
 
-        const info =
-            document.createElement("div");
+            const info =
+                document.createElement(
+                    "div"
+                );
 
+            info.innerHTML =
+                "<strong>" +
+                (user.name || "") +
+                "</strong>" +
+                "<br>" +
+                (user.username || "") +
+                " — ACC-" +
+                user.clearance;
 
-        info.innerHTML =
-            "<strong>" +
-            user.name +
-            "</strong>" +
-            "<br>" +
-            user.username +
-            " — ACC-" +
-            user.clearance;
+            container.appendChild(
+                info
+            );
 
-
-        container.appendChild(info);
-
-
-        // Impossible de modifier
-        // un utilisateur de rang égal
-        // ou supérieur
-
-        if (
-            user.id !== currentProfile.id &&
-            user.clearance < currentProfile.clearance
-        ) {
-
-            const select =
-                document.createElement("select");
-
-
-            for (
-                let rank = 1;
-                rank < currentProfile.clearance;
-                rank++
+            if (
+                user.id !== currentProfile.id &&
+                user.clearance <
+                    currentProfile.clearance
             ) {
 
-                const option =
-                    document.createElement("option");
-
-
-                option.value = rank;
-
-
-                option.textContent =
-                    "ACC-" + rank;
-
-
-                if (
-                    rank === user.clearance
-                ) {
-
-                    option.selected = true;
-
-                }
-
-
-                select.appendChild(option);
-
-            }
-
-
-            select.onchange =
-                function() {
-
-                    changeRank(
-                        user.id,
-                        Number(select.value)
+                const select =
+                    document.createElement(
+                        "select"
                     );
 
-                };
+                for (
+                    let rank = 1;
+                    rank <
+                    currentProfile.clearance;
+                    rank++
+                ) {
 
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
 
-            container.appendChild(select);
+                    option.value =
+                        rank;
 
+                    option.textContent =
+                        "ACC-" +
+                        rank;
+
+                    if (
+                        rank ===
+                        user.clearance
+                    ) {
+
+                        option.selected =
+                            true;
+                    }
+
+                    select.appendChild(
+                        option
+                    );
+                }
+
+                select.onchange =
+                    function() {
+
+                        changeRank(
+                            user.id,
+                            Number(
+                                select.value
+                            )
+                        );
+                    };
+
+                container.appendChild(
+                    select
+                );
+            }
+
+            userList.appendChild(
+                container
+            );
         }
-
-
-        userList.appendChild(container);
-
-    });
-
+    );
 }
 
+// ==================================================
+// RECHERCHE UTILISATEUR
+// ==================================================
 
+function filterUsers() {
+
+    const searchInput =
+        document.getElementById(
+            "admin-search"
+        );
+
+    if (!searchInput) return;
+
+    const search =
+        searchInput.value
+            .trim()
+            .toLowerCase();
+
+    if (!search) {
+
+        renderUsers(
+            adminUsers
+        );
+
+        return;
+    }
+
+    const filteredUsers =
+        adminUsers.filter(
+            function(user) {
+
+                const username =
+                    String(
+                        user.username || ""
+                    ).toLowerCase();
+
+                const name =
+                    String(
+                        user.name || ""
+                    ).toLowerCase();
+
+                return (
+                    username.includes(search) ||
+                    name.includes(search)
+                );
+            }
+        );
+
+    renderUsers(
+        filteredUsers
+    );
+}
 
 // ==================================================
 // MODIFICATION DU RANG
@@ -1105,49 +925,37 @@ async function changeRank(
     newRank
 ) {
 
-    if (!currentProfile) {
-
-        return;
-
-    }
-
-
-    // ------------------------------
-    // Vérification locale
-    // ------------------------------
+    if (!currentProfile) return;
 
     if (
         newRank < 1 ||
-        newRank >= currentProfile.clearance
+        newRank >=
+            currentProfile.clearance
     ) {
 
-        alert("INVALID CLEARANCE");
+        alert(
+            "INVALID CLEARANCE"
+        );
 
         loadUsers();
 
         return;
-
     }
 
-
-    // ------------------------------
-    // Appel sécurisé Supabase
-    // ------------------------------
-
-    const { error } =
+    const {
+        error
+    } =
         await supabaseClient
             .rpc(
                 "change_user_clearance",
                 {
-                    target_user_id: userId,
-                    new_clearance: newRank
+                    target_user_id:
+                        userId,
+
+                    new_clearance:
+                        newRank
                 }
             );
-
-
-    // ------------------------------
-    // Erreur
-    // ------------------------------
 
     if (error) {
 
@@ -1164,25 +972,15 @@ async function changeRank(
         loadUsers();
 
         return;
-
     }
-
-
-    // ------------------------------
-    // Succès
-    // ------------------------------
 
     console.log(
         "CLEARANCE UPDATED → ACC-" +
         newRank
     );
 
-
     loadUsers();
-
 }
-
-
 
 // ==================================================
 // DÉTECTION DE SESSION EXISTANTE
@@ -1190,22 +988,17 @@ async function changeRank(
 
 async function checkSession() {
 
-    const { data } =
+    const {
+        data
+    } =
         await supabaseClient
             .auth
             .getSession();
 
-
-    if (!data.session) {
-
-        return;
-
-    }
-
+    if (!data.session) return;
 
     currentUser =
         data.session.user;
-
 
     const {
         data: profile,
@@ -1220,98 +1013,87 @@ async function checkSession() {
             )
             .single();
 
-
-    if (
-        error ||
-        !profile
-    ) {
+    if (error || !profile) {
 
         await supabaseClient
             .auth
             .signOut();
 
         return;
-
     }
-
 
     currentProfile =
         profile;
-
 
     document
         .getElementById("login-screen")
         .classList
         .add("hidden");
 
+    document
+        .getElementById("register-screen")
+        .classList
+        .add("hidden");
 
     document
         .getElementById("os")
         .classList
         .remove("hidden");
 
-
     document
         .getElementById("current-user")
         .textContent =
-            profile.name;
-
+        profile.name;
 
     document
         .getElementById("clearance")
         .textContent =
-            "ACC-" +
-            profile.clearance;
-
+        "ACC-" +
+        profile.clearance;
 
     document
         .getElementById("system-user")
         .textContent =
-            profile.name;
-
+        profile.name;
 
     document
         .getElementById("system-clearance")
         .textContent =
-            "ACC-" +
-            profile.clearance;
-
+        "ACC-" +
+        profile.clearance;
 
     updatePermissions();
-
 }
+
 // ==================================================
 // GESTION DES DOCUMENTS GOOGLE DOCS
-// ==================================================
-
-let adminDocuments = [];
-
-
-// ==================================================
-// CHARGER LES DOCUMENTS
 // ==================================================
 
 async function loadDocuments() {
 
     const documentList =
-        document.getElementById("document-list");
+        document.getElementById(
+            "document-list"
+        );
 
-    if (!documentList) {
-        return;
-    }
+    if (!documentList) return;
 
     documentList.innerHTML =
         "<p>LOADING DOCUMENTS...</p>";
 
-
-    const { data, error } =
+    const {
+        data,
+        error
+    } =
         await supabaseClient
             .from("documents")
             .select("*")
-            .order("created_at", {
-                ascending: false
-            });
-
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
 
     if (error) {
 
@@ -1326,30 +1108,30 @@ async function loadDocuments() {
         return;
     }
 
+    adminDocuments =
+        data || [];
 
-    adminDocuments = data || [];
-
-    renderDocuments(adminDocuments);
+    renderDocuments(
+        adminDocuments
+    );
 }
-
-
 
 // ==================================================
 // AFFICHER LES DOCUMENTS
 // ==================================================
 
-function renderDocuments(documents) {
+function renderDocuments(
+    documents
+) {
 
     const documentList =
-        document.getElementById("document-list");
+        document.getElementById(
+            "document-list"
+        );
 
-    if (!documentList) {
-        return;
-    }
-
+    if (!documentList) return;
 
     documentList.innerHTML = "";
-
 
     if (documents.length === 0) {
 
@@ -1359,61 +1141,60 @@ function renderDocuments(documents) {
         return;
     }
 
+    documents.forEach(
+        function(doc) {
 
-    documents.forEach(function(doc) {
-
-        const container =
-            document.createElement("div");
-
-        container.className = "file";
-
-
-        const info =
-            document.createElement("div");
-
-
-        info.innerHTML =
-            "<strong>📄 " +
-            doc.name +
-            "</strong>" +
-            "<br>" +
-            "<small>GOOGLE DOCS</small>";
-
-
-        container.appendChild(info);
-
-
-        // Bouton ouvrir
-
-        const openButton =
-            document.createElement("button");
-
-
-        openButton.textContent =
-            "OUVRIR";
-
-
-        openButton.onclick =
-            function() {
-
-                window.open(
-                    doc.google_url,
-                    "_blank"
+            const container =
+                document.createElement(
+                    "div"
                 );
 
-            };
+            container.className =
+                "file";
 
+            const info =
+                document.createElement(
+                    "div"
+                );
 
-        container.appendChild(openButton);
+            info.innerHTML =
+                "<strong>📄 " +
+                (doc.name || "") +
+                "</strong>" +
+                "<br>" +
+                "<small>GOOGLE DOCS</small>";
 
+            container.appendChild(
+                info
+            );
 
-        documentList.appendChild(container);
+            const openButton =
+                document.createElement(
+                    "button"
+                );
 
-    });
+            openButton.textContent =
+                "OUVRIR";
 
+            openButton.onclick =
+                function() {
+
+                    window.open(
+                        doc.google_url,
+                        "_blank"
+                    );
+                };
+
+            container.appendChild(
+                openButton
+            );
+
+            documentList.appendChild(
+                container
+            );
+        }
+    );
 }
-
-
 
 // ==================================================
 // RECHERCHE DE DOCUMENT
@@ -1426,17 +1207,12 @@ function filterDocuments() {
             "document-search"
         );
 
-
-    if (!searchInput) {
-        return;
-    }
-
+    if (!searchInput) return;
 
     const search =
         searchInput.value
             .trim()
             .toLowerCase();
-
 
     if (!search) {
 
@@ -1447,7 +1223,6 @@ function filterDocuments() {
         return;
     }
 
-
     const filteredDocuments =
         adminDocuments.filter(
             function(doc) {
@@ -1457,20 +1232,16 @@ function filterDocuments() {
                         doc.name || ""
                     ).toLowerCase();
 
-
-                return name.includes(search);
-
+                return name.includes(
+                    search
+                );
             }
         );
-
 
     renderDocuments(
         filteredDocuments
     );
-
 }
-
-
 
 // ==================================================
 // AJOUTER UN DOCUMENT
@@ -1487,28 +1258,21 @@ async function addDocument() {
         return;
     }
 
-
     const nameInput =
         document.getElementById(
             "document-name"
         );
-
 
     const urlInput =
         document.getElementById(
             "document-url"
         );
 
-
     const name =
         nameInput.value.trim();
 
-
     const url =
         urlInput.value.trim();
-
-
-    // Vérification
 
     if (!name || !url) {
 
@@ -1518,9 +1282,6 @@ async function addDocument() {
 
         return;
     }
-
-
-    // Vérifier que c'est bien un lien Google
 
     if (
         !url.includes(
@@ -1535,64 +1296,71 @@ async function addDocument() {
         return;
     }
 
-
-    const { error } =
+    const {
+        error
+    } =
         await supabaseClient
             .from("documents")
             .insert({
-
                 name: name,
-
                 google_url: url,
-
                 created_by:
                     currentProfile.id
-
             });
 
-
     if (error) {
-    console.error("DOCUMENT ADD ERROR:", error);
-    console.error("MESSAGE:", error.message);
-    console.error("DETAILS:", error.details);
-    console.error("HINT:", error.hint);
-    console.error("CODE:", error.code);
 
-    alert(
-        "ERREUR SUPABASE :\n\n" +
-        error.message
-    );
+        console.error(
+            "DOCUMENT ADD ERROR:",
+            error
+        );
 
-    return;
-    }   
+        console.error(
+            "MESSAGE:",
+            error.message
+        );
 
+        console.error(
+            "DETAILS:",
+            error.details
+        );
 
-    // Nettoyer les champs
+        console.error(
+            "HINT:",
+            error.hint
+        );
+
+        console.error(
+            "CODE:",
+            error.code
+        );
+
+        alert(
+            "ERREUR SUPABASE :\n\n" +
+            error.message
+        );
+
+        return;
+    }
 
     nameInput.value = "";
     urlInput.value = "";
 
-
-    // Recharger
-
     loadDocuments();
-
 }
 
-
-
 // ==================================================
-// OUVERTURE DE LA FENÊTRE DOCUMENTS
+// OUVERTURE DOCUMENTS
 // ==================================================
 
 function openDocuments() {
 
-    openWindow("documents");
+    openWindow(
+        "documents"
+    );
 
     loadDocuments();
-
 }
-
 
 // ==================================================
 // INITIALISATION
@@ -1600,9 +1368,6 @@ function openDocuments() {
 
 checkSession();
 
-
 console.log(
     "ANTHER OS : JavaScript initialisé"
 );
-
-
