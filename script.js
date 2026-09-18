@@ -1,18 +1,10 @@
 ```javascript
-/* =====================================================
-   CRUXIS OS
-   GitHub Pages Edition
-   ===================================================== */
+// =====================================================
+// CRUXIS OS
+// =====================================================
 
-
-/* ================= USERS ================= */
-
-/*
-   Comptes de base.
-*/
-
+// Comptes de base
 const defaultUsers = {
-
     admin: {
         password: "admin123",
         clearance: 4,
@@ -36,118 +28,32 @@ const defaultUsers = {
         clearance: 1,
         name: "USER"
     }
-
 };
 
 
-/*
-   Charger les comptes créés dans ce navigateur.
-*/
+// Charger les comptes sauvegardés
+let users;
 
-let users =
-    JSON.parse(localStorage.getItem("cruxisUsers"))
-    || defaultUsers;
+try {
+    users = JSON.parse(
+        localStorage.getItem("cruxisUsers")
+    );
 
+    if (!users) {
+        users = defaultUsers;
+    }
 
-/* ================= VARIABLES ================= */
+} catch (error) {
+    users = defaultUsers;
+}
+
 
 let currentUser = null;
 
 
-/* ================= LOGIN ================= */
-
-function login() {
-
-    const username =
-        document.getElementById("username").value.trim();
-
-    const password =
-        document.getElementById("password").value;
-
-    const error =
-        document.getElementById("login-error");
-
-
-    if (!users[username]) {
-
-        error.textContent =
-            "IDENTIFIANT INCONNU";
-
-        return;
-    }
-
-
-    if (users[username].password !== password) {
-
-        error.textContent =
-            "MOT DE PASSE INCORRECT";
-
-        return;
-    }
-
-
-    currentUser = {
-        ...users[username],
-        username: username
-    };
-
-
-    document
-        .getElementById("login-screen")
-        .classList.add("hidden");
-
-
-    document
-        .getElementById("os")
-        .classList.remove("hidden");
-
-
-    document
-        .getElementById("current-user")
-        .textContent =
-        currentUser.name;
-
-
-    document
-        .getElementById("clearance")
-        .textContent =
-        "ACC-" + currentUser.clearance;
-
-
-    document
-        .getElementById("system-user")
-        .textContent =
-        currentUser.name;
-
-
-    document
-        .getElementById("system-clearance")
-        .textContent =
-        "ACC-" + currentUser.clearance;
-
-
-    updatePermissions();
-
-
-    document
-        .getElementById("system-message")
-        .textContent =
-        "WELCOME " + currentUser.name;
-
-
-    terminalPrint(
-        "Authentication successful."
-    );
-
-    terminalPrint(
-        "Clearance level: ACC-" +
-        currentUser.clearance
-    );
-
-}
-
-
-/* ================= REGISTER ================= */
+// =====================================================
+// AFFICHAGE DES ÉCRANS
+// =====================================================
 
 function showRegister() {
 
@@ -175,7 +81,9 @@ function showLogin() {
 }
 
 
-/* ================= CREATE ACCOUNT ================= */
+// =====================================================
+// CRÉATION DE COMPTE
+// =====================================================
 
 function register() {
 
@@ -199,8 +107,12 @@ function register() {
         document.getElementById("register-error");
 
 
-    /* Vérification du nom */
+    // Réinitialiser le message
+    error.style.color = "#ff6565";
+    error.textContent = "";
 
+
+    // Vérification identifiant
     if (username.length < 3) {
 
         error.textContent =
@@ -210,8 +122,7 @@ function register() {
     }
 
 
-    /* Vérification des caractères */
-
+    // Caractères autorisés
     if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
 
         error.textContent =
@@ -221,8 +132,7 @@ function register() {
     }
 
 
-    /* Compte déjà existant */
-
+    // Compte déjà existant
     if (users[username]) {
 
         error.textContent =
@@ -232,8 +142,7 @@ function register() {
     }
 
 
-    /* Mot de passe */
-
+    // Mot de passe
     if (password.length < 4) {
 
         error.textContent =
@@ -243,8 +152,7 @@ function register() {
     }
 
 
-    /* Confirmation */
-
+    // Confirmation
     if (password !== confirmation) {
 
         error.textContent =
@@ -254,13 +162,7 @@ function register() {
     }
 
 
-    /*
-       Création du compte.
-
-       TOUS les nouveaux comptes
-       commencent en ACC-1.
-    */
-
+    // Créer le compte
     users[username] = {
 
         password: password,
@@ -272,43 +174,38 @@ function register() {
     };
 
 
-    /*
-       Sauvegarde dans le navigateur.
-    */
+    // Sauvegarder
+    try {
 
-    localStorage.setItem(
-        "cruxisUsers",
-        JSON.stringify(users)
-    );
+        localStorage.setItem(
+            "cruxisUsers",
+            JSON.stringify(users)
+        );
 
+    } catch (errorStorage) {
 
-    /* Nettoyage */
+        error.textContent =
+            "ERREUR DE SAUVEGARDE";
 
-    document
-        .getElementById("new-username")
-        .value = "";
-
-    document
-        .getElementById("new-password")
-        .value = "";
-
-    document
-        .getElementById("new-password-confirm")
-        .value = "";
+        return;
+    }
 
 
+    // Message de succès
     error.style.color = "#aaa";
 
     error.textContent =
         "COMPTE CRÉÉ — ACCÈS ACC-1";
 
 
-    /*
-       Retour automatique au login
-       après 1,5 seconde.
-    */
+    // Effacer les champs
+    document.getElementById("new-username").value = "";
+    document.getElementById("new-password").value = "";
+    document.getElementById("new-password-confirm").value = "";
 
-    setTimeout(() => {
+
+    // Retour au login
+    setTimeout(function () {
 
         error.textContent = "";
 
@@ -319,7 +216,107 @@ function register() {
 }
 
 
-/* ================= PERMISSIONS ================= */
+// =====================================================
+// CONNEXION
+// =====================================================
+
+function login() {
+
+    const username =
+        document
+            .getElementById("username")
+            .value
+            .trim();
+
+    const password =
+        document
+            .getElementById("password")
+            .value;
+
+    const error =
+        document.getElementById("login-error");
+
+
+    error.textContent = "";
+
+
+    if (!users[username]) {
+
+        error.textContent =
+            "IDENTIFIANT INCONNU";
+
+        return;
+    }
+
+
+    if (users[username].password !== password) {
+
+        error.textContent =
+            "MOT DE PASSE INCORRECT";
+
+        return;
+    }
+
+
+    currentUser = {
+        ...users[username],
+        username: username
+    };
+
+
+    // Afficher le système
+    document
+        .getElementById("login-screen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("register-screen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("os")
+        .classList.remove("hidden");
+
+
+    // Informations utilisateur
+    document
+        .getElementById("current-user")
+        .textContent =
+        currentUser.name;
+
+    document
+        .getElementById("clearance")
+        .textContent =
+        "ACC-" + currentUser.clearance;
+
+    document
+        .getElementById("system-user")
+        .textContent =
+        currentUser.name;
+
+    document
+        .getElementById("system-clearance")
+        .textContent =
+        "ACC-" + currentUser.clearance;
+
+
+    updatePermissions();
+
+    terminalPrint(
+        "AUTHENTICATION SUCCESSFUL"
+    );
+
+    terminalPrint(
+        "CLEARANCE: ACC-" +
+        currentUser.clearance
+    );
+
+}
+
+
+// =====================================================
+// PERMISSIONS
+// =====================================================
 
 function updatePermissions() {
 
@@ -329,274 +326,5 @@ function updatePermissions() {
 
     if (currentUser.clearance >= 3) {
 
-        adminIcon.classList.remove("hidden");
-
-        loadUsers();
-
-    } else {
-
-        adminIcon.classList.add("hidden");
-
-    }
-
-}
-
-
-/* ================= WINDOWS ================= */
-
-function openWindow(id) {
-
-    const element =
-        document.getElementById(id);
-
-
-    if (!element) return;
-
-
-    if (
-        id === "admin" &&
-        currentUser.clearance < 3
-    ) {
-
-        terminalPrint(
-            "ACCESS DENIED."
-        );
-
-        return;
-    }
-
-
-    element.classList.remove("hidden");
-
-}
-
-
-function closeWindow(id) {
-
-    document
-        .getElementById(id)
-        .classList.add("hidden");
-
-}
-
-
-/* ================= START MENU ================= */
-
-function toggleStart() {
-
-    document
-        .getElementById("start-menu")
-        .classList.toggle("hidden");
-
-}
-
-
-/* ================= LOGOUT ================= */
-
-function logout() {
-
-    currentUser = null;
-
-
-    document
-        .getElementById("os")
-        .classList.add("hidden");
-
-
-    document
-        .getElementById("login-screen")
-        .classList.remove("hidden");
-
-
-    document
-        .getElementById("username")
-        .value = "";
-
-    document
-        .getElementById("password")
-        .value = "";
-
-    document
-        .getElementById("login-error")
-        .textContent = "";
-
-}
-
-
-/* ================= CLOCK ================= */
-
-function updateClock() {
-
-    const now = new Date();
-
-    document
-        .getElementById("system-clock")
-        .textContent =
-        now.toLocaleTimeString("fr-FR");
-
-}
-
-setInterval(updateClock, 1000);
-
-updateClock();
-
-
-/* ================= TERMINAL ================= */
-
-function terminalKey(event) {
-
-    if (event.key !== "Enter") {
-        return;
-    }
-
-
-    const input =
-        document.getElementById("terminal-command");
-
-
-    const command =
-        input.value.trim().toLowerCase();
-
-
-    if (!command) return;
-
-
-    terminalPrint(
-        "root@cruxis:~$ " + command
-    );
-
-
-    executeCommand(command);
-
-
-    input.value = "";
-
-}
-
-
-function terminalPrint(text) {
-
-    const output =
-        document.getElementById("terminal-output");
-
-
-    const line =
-        document.createElement("div");
-
-
-    line.textContent = text;
-
-
-    output.appendChild(line);
-
-}
-
-
-/* ================= COMMANDS ================= */
-
-function executeCommand(command) {
-
-    switch (command) {
-
-
-        case "help":
-
-            terminalPrint("Available commands:");
-            terminalPrint("help");
-            terminalPrint("whoami");
-            terminalPrint("status");
-            terminalPrint("clear");
-            terminalPrint("logout");
-
-            break;
-
-
-        case "whoami":
-
-            terminalPrint(
-                currentUser.name
-            );
-
-            break;
-
-
-        case "status":
-
-            terminalPrint(
-                "CRUXIS OS ONLINE"
-            );
-
-            terminalPrint(
-                "NETWORK: ONLINE"
-            );
-
-            terminalPrint(
-                "CLEARANCE: ACC-" +
-                currentUser.clearance
-            );
-
-            break;
-
-
-        case "clear":
-
-            document
-                .getElementById("terminal-output")
-                .innerHTML = "";
-
-            break;
-
-
-        case "logout":
-
-            logout();
-
-            break;
-
-
-        default:
-
-            terminalPrint(
-                "Unknown command: " + command
-            );
-
-    }
-
-}
-
-
-/* ================= ADMIN ================= */
-
-function loadUsers() {
-
-    const list =
-        document.getElementById("user-list");
-
-
-    list.innerHTML = "";
-
-
-    for (const username in users) {
-
-        const user = users[username];
-
-
-        const element =
-            document.createElement("div");
-
-
-        element.className = "file";
-
-
-        element.textContent =
-            username +
-            " — ACC-" +
-            user.clearance;
-
-
-        list.appendChild(element);
-
-    }
-
-}
+        adminIcon.classList.r
 ```

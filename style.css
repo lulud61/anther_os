@@ -449,18 +449,8 @@ footer {
     background: #242c31;
 }
 
-.secondary-button {
-    margin-top: 8px !important;
-
-    background: transparent !important;
-    color: #aaa !important;
-
-    border: 1px solid #454e55 !important;
-}
-
-.secondary-button:hover {
-    background: #171d21 !important;
-    color: white !important;
+.hidden {
+    display: none !important;
 }
 
 #register-screen {
@@ -479,4 +469,16 @@ footer {
             transparent 3px,
             rgba(255,255,255,.025) 4px
         );
+}
+
+.secondary-button {
+    margin-top: 8px !important;
+    background: transparent !important;
+    color: #aaa !important;
+    border: 1px solid #454e55 !important;
+}
+
+.secondary-button:hover {
+    background: #171d21 !important;
+    color: white !important;
 }
