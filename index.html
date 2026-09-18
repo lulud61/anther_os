@@ -1,0 +1,376 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUXIS OS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ================= LOGIN ================= -->
+
+    <div id="login-screen">
+
+        <div class="login-box">
+
+            <div class="logo">
+                CRUXIS
+                <span>OS</span>
+            </div>
+
+            <div class="system-status">
+                SYSTEM ONLINE
+            </div>
+
+            <h2>AUTHENTIFICATION</h2>
+
+            <input
+                type="text"
+                id="username"
+                placeholder="Identifiant"
+                autocomplete="off"
+            >
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Mot de passe"
+            >
+
+            <button onclick="login()">
+                ACCÉDER AU SYSTÈME
+            </button>
+
+            <button class="secondary-button" onclick="showRegister()">
+                CRÉER UN COMPTE
+            </button>
+
+            <p id="login-error"></p>
+
+            <div class="login-info">
+                SECURE CONNECTION // CRX-NET
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= REGISTER ================= -->
+
+    <div id="register-screen" class="hidden">
+
+        <div class="login-box">
+
+            <div class="logo">
+                CRUXIS
+                <span>OS</span>
+            </div>
+
+            <div class="system-status">
+                NEW USER REGISTRATION
+            </div>
+
+            <h2>CRÉATION DE COMPTE</h2>
+
+            <input
+                type="text"
+                id="new-username"
+                placeholder="Nouvel identifiant"
+                autocomplete="off"
+            >
+
+            <input
+                type="password"
+                id="new-password"
+                placeholder="Mot de passe"
+            >
+
+            <input
+                type="password"
+                id="new-password-confirm"
+                placeholder="Confirmer le mot de passe"
+            >
+
+            <button onclick="register()">
+                CRÉER LE COMPTE
+            </button>
+
+            <button class="secondary-button" onclick="showLogin()">
+                RETOUR
+            </button>
+
+            <p id="register-error"></p>
+
+            <div class="login-info">
+                DEFAULT CLEARANCE : ACC-1
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= OS ================= -->
+
+    <div id="os" class="hidden">
+
+        <header>
+
+            <div class="header-logo">
+                CRUXIS <span>OS</span>
+            </div>
+
+            <div id="system-clock">
+                00:00:00
+            </div>
+
+            <div class="user-info">
+                <span id="current-user"></span>
+                <span id="clearance"></span>
+            </div>
+
+        </header>
+
+
+        <main id="desktop">
+
+            <div class="desktop-title">
+                CRUXIS OPERATING SYSTEM
+
+                <small id="system-message">
+                    SYSTEM READY
+                </small>
+            </div>
+
+
+            <div class="icons">
+
+                <div class="app-icon" onclick="openWindow('terminal')">
+                    <div class="icon">>_</div>
+                    <span>TERMINAL</span>
+                </div>
+
+                <div class="app-icon" onclick="openWindow('files')">
+                    <div class="icon">▣</div>
+                    <span>FILES</span>
+                </div>
+
+                <div class="app-icon" onclick="openWindow('network')">
+                    <div class="icon">◈</div>
+                    <span>NETWORK</span>
+                </div>
+
+                <div class="app-icon" onclick="openWindow('system')">
+                    <div class="icon">⚙</div>
+                    <span>SYSTEM</span>
+                </div>
+
+                <div
+                    id="admin-icon"
+                    class="app-icon hidden"
+                    onclick="openWindow('admin')"
+                >
+                    <div class="icon">◆</div>
+                    <span>ADMIN</span>
+                </div>
+
+            </div>
+
+
+            <!-- TERMINAL -->
+
+            <div id="terminal" class="window hidden">
+
+                <div class="window-header">
+                    TERMINAL
+                    <button onclick="closeWindow('terminal')">×</button>
+                </div>
+
+                <div class="window-content terminal-content">
+
+                    <p>CRUXIS TERMINAL v1.0</p>
+                    <p>Type <b>help</b> to display commands.</p>
+
+                    <div id="terminal-output"></div>
+
+                    <div class="terminal-input">
+
+                        <span>root@cruxis:~$</span>
+
+                        <input
+                            id="terminal-command"
+                            type="text"
+                            autocomplete="off"
+                            onkeydown="terminalKey(event)"
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- FILES -->
+
+            <div id="files" class="window hidden">
+
+                <div class="window-header">
+                    FILE SYSTEM
+                    <button onclick="closeWindow('files')">×</button>
+                </div>
+
+                <div class="window-content">
+
+                    <h3>/ROOT</h3>
+
+                    <div class="file">
+                        📁 SYSTEM
+                    </div>
+
+                    <div class="file">
+                        📁 USERS
+                    </div>
+
+                    <div class="file">
+                        📁 DATA
+                    </div>
+
+                    <div class="file">
+                        📄 README.txt
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- NETWORK -->
+
+            <div id="network" class="window hidden">
+
+                <div class="window-header">
+                    NETWORK
+                    <button onclick="closeWindow('network')">×</button>
+                </div>
+
+                <div class="window-content">
+
+                    <p>NETWORK STATUS</p>
+
+                    <div class="network-status">
+                        ● ONLINE
+                    </div>
+
+                    <p>Connection: CRX-NET</p>
+                    <p>Encryption: ACTIVE</p>
+                    <p>Latency: 24 ms</p>
+
+                </div>
+
+            </div>
+
+
+            <!-- SYSTEM -->
+
+            <div id="system" class="window hidden">
+
+                <div class="window-header">
+                    SYSTEM
+                    <button onclick="closeWindow('system')">×</button>
+                </div>
+
+                <div class="window-content">
+
+                    <h2>SYSTEM INFORMATION</h2>
+
+                    <p>Operating System: CRUXIS OS</p>
+                    <p>Version: 1.0</p>
+                    <p>Status: ONLINE</p>
+
+                    <hr>
+
+                    <p>
+                        User:
+                        <strong id="system-user"></strong>
+                    </p>
+
+                    <p>
+                        Clearance:
+                        <strong id="system-clearance"></strong>
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ADMIN -->
+
+            <div id="admin" class="window hidden">
+
+                <div class="window-header">
+                    ADMINISTRATION
+                    <button onclick="closeWindow('admin')">×</button>
+                </div>
+
+                <div class="window-content">
+
+                    <h2>ADMIN CONTROL</h2>
+
+                    <p>
+                        Access level sufficient.
+                    </p>
+
+                    <hr>
+
+                    <h3>USERS</h3>
+
+                    <div id="user-list"></div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+
+        <!-- TASKBAR -->
+
+        <footer>
+
+            <button class="start-button" onclick="toggleStart()">
+                CRX
+            </button>
+
+            <div id="start-menu" class="start-menu hidden">
+
+                <h3>CRUXIS OS</h3>
+
+                <button onclick="openWindow('system')">
+                    ⚙ SYSTEM
+                </button>
+
+                <button onclick="logout()">
+                    ⏻ LOGOUT
+                </button>
+
+            </div>
+
+            <div class="taskbar-status">
+                CONNECTION: <span>ONLINE</span>
+            </div>
+
+        </footer>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>

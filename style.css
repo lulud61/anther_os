@@ -1,0 +1,482 @@
+```css
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Courier New", monospace;
+    background: #050709;
+    color: #d8d8d8;
+    overflow: hidden;
+}
+
+
+/* ================= LOGIN ================= */
+
+#login-screen {
+    width: 100vw;
+    height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background:
+        linear-gradient(rgba(0,0,0,.75), rgba(0,0,0,.9)),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 3px,
+            rgba(255,255,255,.025) 4px
+        );
+}
+
+.login-box {
+    width: 420px;
+    padding: 40px;
+
+    background: #0c1013;
+    border: 1px solid #59636b;
+
+    box-shadow:
+        0 0 40px rgba(255,255,255,.05),
+        inset 0 0 30px rgba(255,255,255,.02);
+
+    text-align: center;
+}
+
+.logo {
+    font-size: 42px;
+    font-weight: bold;
+    letter-spacing: 7px;
+}
+
+.logo span,
+.header-logo span {
+    font-weight: normal;
+}
+
+.system-status {
+    margin: 15px 0 35px;
+
+    font-size: 12px;
+    letter-spacing: 3px;
+
+    color: #9ca3a8;
+}
+
+.login-box h2 {
+    font-size: 17px;
+    letter-spacing: 3px;
+    margin-bottom: 25px;
+}
+
+.login-box input {
+    display: block;
+
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0;
+
+    background: #050709;
+    border: 1px solid #454e55;
+
+    color: white;
+    font-family: inherit;
+}
+
+.login-box input:focus {
+    outline: none;
+    border-color: white;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 15px;
+
+    background: #d7d7d7;
+    color: #050505;
+
+    border: none;
+    cursor: pointer;
+
+    font-family: inherit;
+    font-weight: bold;
+}
+
+.login-box button:hover {
+    background: white;
+}
+
+#login-error {
+    height: 20px;
+    color: #ff6565;
+    font-size: 12px;
+}
+
+.login-info {
+    margin-top: 25px;
+    font-size: 9px;
+    color: #59636b;
+}
+
+
+/* ================= OS ================= */
+
+.hidden {
+    display: none !important;
+}
+
+#os {
+    height: 100vh;
+    width: 100vw;
+}
+
+
+/* ================= HEADER ================= */
+
+header {
+    height: 55px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 20px;
+
+    background: #090d10;
+    border-bottom: 1px solid #3b4247;
+}
+
+.header-logo {
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 4px;
+}
+
+#system-clock {
+    color: #aaa;
+}
+
+.user-info {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+}
+
+#clearance {
+    padding: 4px 8px;
+    border: 1px solid #666;
+}
+
+
+/* ================= DESKTOP ================= */
+
+#desktop {
+    position: relative;
+
+    height: calc(100vh - 95px);
+
+    padding: 25px;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #171d21 0%,
+            #080b0d 70%
+        );
+}
+
+.desktop-title {
+    font-size: 14px;
+    letter-spacing: 3px;
+}
+
+.desktop-title small {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #6f777d;
+    letter-spacing: 1px;
+}
+
+
+/* ================= ICONS ================= */
+
+.icons {
+    display: flex;
+    gap: 35px;
+    margin-top: 40px;
+}
+
+.app-icon {
+    width: 85px;
+
+    text-align: center;
+
+    cursor: pointer;
+}
+
+.app-icon .icon {
+    width: 60px;
+    height: 60px;
+
+    margin: auto;
+    margin-bottom: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #69727a;
+
+    font-size: 23px;
+}
+
+.app-icon:hover .icon {
+    background: #d8d8d8;
+    color: #050505;
+}
+
+.app-icon span {
+    font-size: 10px;
+}
+
+
+/* ================= WINDOWS ================= */
+
+.window {
+    position: absolute;
+
+    top: 120px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 600px;
+    max-width: 90vw;
+
+    background: #090d10;
+
+    border: 1px solid #69727a;
+
+    box-shadow: 0 15px 50px rgba(0,0,0,.7);
+}
+
+.window-header {
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 12px;
+
+    background: #171d21;
+
+    border-bottom: 1px solid #4c555c;
+
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+.window-header button {
+    background: none;
+    border: none;
+
+    color: white;
+
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.window-content {
+    padding: 20px;
+
+    min-height: 220px;
+}
+
+
+/* ================= TERMINAL ================= */
+
+.terminal-content {
+    background: #020303;
+
+    min-height: 300px;
+}
+
+.terminal-input {
+    display: flex;
+    gap: 8px;
+}
+
+.terminal-input input {
+    flex: 1;
+
+    background: transparent;
+    border: none;
+    outline: none;
+
+    color: white;
+
+    font-family: inherit;
+}
+
+#terminal-output {
+    margin-bottom: 10px;
+    color: #bfc5c8;
+}
+
+
+/* ================= FILES ================= */
+
+.file {
+    padding: 12px;
+
+    border-bottom: 1px solid #252b2f;
+}
+
+.file:hover {
+    background: #171d21;
+}
+
+
+/* ================= NETWORK ================= */
+
+.network-status {
+    margin: 20px 0;
+}
+
+
+/* ================= TASKBAR ================= */
+
+footer {
+    position: fixed;
+
+    bottom: 0;
+
+    width: 100%;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+
+    background: #090d10;
+
+    border-top: 1px solid #3b4247;
+}
+
+.start-button {
+    height: 40px;
+    width: 60px;
+
+    background: #151a1e;
+
+    border: none;
+    border-right: 1px solid #3b4247;
+
+    color: white;
+
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.start-button:hover {
+    background: #252c31;
+}
+
+.taskbar-status {
+    margin-left: auto;
+    padding-right: 20px;
+
+    font-size: 10px;
+}
+
+.taskbar-status span {
+    color: #aaa;
+}
+
+
+/* ================= START MENU ================= */
+
+.start-menu {
+    position: absolute;
+
+    bottom: 40px;
+    left: 0;
+
+    width: 230px;
+
+    padding: 15px;
+
+    background: #0b0f12;
+
+    border: 1px solid #555;
+
+    box-shadow: 0 0 30px black;
+}
+
+.start-menu h3 {
+    margin-top: 0;
+}
+
+.start-menu button {
+    display: block;
+
+    width: 100%;
+
+    padding: 10px;
+
+    margin-top: 5px;
+
+    background: #11171b;
+
+    color: white;
+
+    border: 1px solid #333;
+
+    text-align: left;
+
+    font-family: inherit;
+
+    cursor: pointer;
+}
+
+.start-menu button:hover {
+    background: #242c31;
+}
+
+.secondary-button {
+    margin-top: 8px !important;
+
+    background: transparent !important;
+    color: #aaa !important;
+
+    border: 1px solid #454e55 !important;
+}
+
+.secondary-button:hover {
+    background: #171d21 !important;
+    color: white !important;
+}
+
+#register-screen {
+    width: 100vw;
+    height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background:
+        linear-gradient(rgba(0,0,0,.75), rgba(0,0,0,.9)),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 3px,
+            rgba(255,255,255,.025) 4px
+        );
+}
