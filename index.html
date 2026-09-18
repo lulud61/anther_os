@@ -23,8 +23,6 @@
 <body>
 
 
-
-
 <!-- ==================================================
      ÉCRAN DE CONNEXION
      ================================================== -->
@@ -65,8 +63,6 @@
         </button>
 
 
-        <!-- BOUTON CRÉATION DE COMPTE -->
-
         <button
             class="secondary-button"
             onclick="showRegister()"
@@ -85,7 +81,6 @@
     </div>
 
 </div>
-
 
 
 <!-- ==================================================
@@ -113,8 +108,6 @@
         <h2>CRÉATION DE COMPTE</h2>
 
 
-        <!-- IDENTIFIANT -->
-
         <input
             type="text"
             id="new-username"
@@ -123,16 +116,12 @@
         >
 
 
-        <!-- MOT DE PASSE -->
-
         <input
             type="password"
             id="new-password"
             placeholder="Mot de passe"
         >
 
-
-        <!-- CONFIRMATION -->
 
         <input
             type="password"
@@ -141,14 +130,10 @@
         >
 
 
-        <!-- CRÉATION -->
-
         <button onclick="register()">
             CRÉER LE COMPTE
         </button>
 
-
-        <!-- RETOUR -->
 
         <button
             class="secondary-button"
@@ -156,9 +141,7 @@
         >
             RETOUR
         </button>
-        
 
-        <!-- MESSAGE D'ERREUR / SUCCÈS -->
 
         <p id="register-error"></p>
 
@@ -170,7 +153,6 @@
     </div>
 
 </div>
-
 
 
 <!-- ==================================================
@@ -213,7 +195,6 @@
     </header>
 
 
-
     <!-- ================= DESKTOP ================= -->
 
     <main id="desktop">
@@ -228,7 +209,6 @@
             </small>
 
         </div>
-
 
 
         <!-- ================= APPLICATIONS ================= -->
@@ -254,7 +234,6 @@
             </div>
 
 
-
             <!-- FILES -->
 
             <div
@@ -272,6 +251,7 @@
 
             </div>
 
+
             <!-- DOCUMENTS -->
 
             <div
@@ -280,14 +260,15 @@
             >
 
                 <div class="icon">
-                📄
+                    📄
                 </div>
 
                 <span>
-                DOCUMENTS
+                    DOCUMENTS
                 </span>
 
             </div>
+
 
             <!-- NETWORK -->
 
@@ -307,7 +288,6 @@
             </div>
 
 
-
             <!-- SYSTEM -->
 
             <div
@@ -324,7 +304,6 @@
                 </span>
 
             </div>
-
 
 
             <!-- ADMIN -->
@@ -349,7 +328,6 @@
         </div>
 
 
-
         <!-- ==================================================
              FENÊTRE TERMINAL
              ================================================== -->
@@ -372,9 +350,7 @@
             </div>
 
 
-            <div
-                class="window-content terminal-content"
-            >
+            <div class="window-content terminal-content">
 
                 <p>
                     ANTHER TERMINAL v1.0
@@ -407,7 +383,6 @@
             </div>
 
         </div>
-
 
 
         <!-- ==================================================
@@ -459,106 +434,128 @@
 
         </div>
 
+
         <!-- ==================================================
-        FENÊTRE DOCUMENTS
-        ================================================== -->
+             FENÊTRE DOCUMENTS
+             ================================================== -->
 
         <div
-        id="documents"
-        class="window hidden"
+            id="documents"
+            class="window hidden"
         >
 
-        <div class="window-header">
+            <div class="window-header">
 
-        DOCUMENTS
+                DOCUMENTS
 
-        <button
-            onclick="closeWindow('documents')"
-        >
-            ×
-        </button>
+                <button
+                    onclick="closeWindow('documents')"
+                >
+                    ×
+                </button>
 
-    </div>
-
-
-    <div class="window-content">
-
-        <h2>
-            ANTHER DOCUMENTS
-        </h2>
-
-        <p>
-            GOOGLE DOCUMENT DATABASE
-        </p>
-
-        <hr>
+            </div>
 
 
-        <label>NIVEAU D'ACCÈS MINIMAL</label>
+            <div class="window-content">
 
-        <select id="document-clearance">
-        <option value="1">ACC-1 — PUBLIC</option>
-        <option value="2">ACC-2</option>
-        <option value="3">ACC-3</option>
-        <option value="4">ACC-4</option>
-        <option value="5">ACC-5</option>
-        </select>
+                <h2>
+                    ANTHER DOCUMENTS
+                </h2>
 
+                <p>
+                    GOOGLE DOCUMENT DATABASE
+                </p>
 
-
-
-        <!-- RECHERCHE -->
-
-        <input
-            type="text"
-            id="document-search"
-            placeholder="Rechercher un document..."
-            autocomplete="off"
-            oninput="filterDocuments()"
-        >
+                <hr>
 
 
-        <!-- LISTE DES DOCUMENTS -->
+                <label>
+                    NIVEAU D'ACCÈS MINIMAL
+                </label>
 
-        <div id="document-list">
 
-            <p>
-                LOADING DOCUMENTS...
-            </p>
+                <select id="document-clearance">
+
+                    <option value="1">
+                        ACC-1 — PUBLIC
+                    </option>
+
+                    <option value="2">
+                        ACC-2
+                    </option>
+
+                    <option value="3">
+                        ACC-3
+                    </option>
+
+                    <option value="4">
+                        ACC-4
+                    </option>
+
+                    <option value="5">
+                        ACC-5
+                    </option>
+
+                </select>
+
+
+                <!-- RECHERCHE -->
+
+                <input
+                    type="text"
+                    id="document-search"
+                    placeholder="Rechercher un document..."
+                    autocomplete="off"
+                    oninput="filterDocuments()"
+                >
+
+
+                <!-- LISTE DES DOCUMENTS -->
+
+                <div id="document-list">
+
+                    <p>
+                        LOADING DOCUMENTS...
+                    </p>
+
+                </div>
+
+
+                <hr>
+
+
+                <!-- AJOUT -->
+
+                <h3>
+                    ADD DOCUMENT
+                </h3>
+
+
+                <input
+                    type="text"
+                    id="document-name"
+                    placeholder="Nom du document"
+                    autocomplete="off"
+                >
+
+
+                <input
+                    type="url"
+                    id="document-url"
+                    placeholder="Lien Google Docs"
+                    autocomplete="off"
+                >
+
+
+                <button onclick="addDocument()">
+                    AJOUTER LE DOCUMENT
+                </button>
+
+            </div>
 
         </div>
 
-
-        <hr>
-
-
-        <!-- AJOUT -->
-
-        <h3>
-            ADD DOCUMENT
-        </h3>
-
-        <input
-            type="text"
-            id="document-name"
-            placeholder="Nom du document"
-            autocomplete="off"
-        >
-
-        <input
-            type="url"
-            id="document-url"
-            placeholder="Lien Google Docs"
-            autocomplete="off"
-        >
-
-        <button onclick="addDocument()">
-            AJOUTER LE DOCUMENT
-        </button>
-
-    </div>
-
-</div>
 
         <!-- ==================================================
              FENÊTRE NETWORK
@@ -609,7 +606,6 @@
             </div>
 
         </div>
-
 
 
         <!-- ==================================================
@@ -678,61 +674,264 @@
         </div>
 
 
-
         <!-- ==================================================
-            FENÊTRE ADMIN
-            ================================================== -->
+             FENÊTRE ADMINISTRATION
+             ================================================== -->
+
         <div
             id="admin"
-        class="window hidden"
+            class="window hidden"
         >
 
             <div class="window-header">
 
-                ADMINISTRATION
+                <span>
+                    ANTHER ADMINISTRATION
+                </span>
+
 
                 <button
                     onclick="closeWindow('admin')"
-            >
-                ×
-            </button>
+                >
+                    ✕
+                </button>
 
             </div>
 
 
-            <div class="window-content">
-
-                <h2>
-                    ADMIN CONTROL
-                </h2>
-
-                <p>
-                    ACCESS LEVEL SUFFICIENT
-                </p>
-
-            <hr>
-
-            <h3>
-                  USER MANAGEMENT
-            </h3>
+            <div class="window-content admin-panel">
 
 
-            <div class="admin-search">
-                <input
-                type="text"
-                id="admin-search"
-                placeholder="Rechercher un pseudo..."
-                autocomplete="off"
-                oninput="filterUsers()"
-    >
-            </div>
+                <!-- ==========================================
+                     RECHERCHE UTILISATEUR
+                     ========================================== -->
 
-            <div id="user-list"></div>
+                <div class="admin-search">
+
+                    <input
+                        type="text"
+                        id="admin-search"
+                        placeholder="RECHERCHER UN PSEUDO..."
+                        autocomplete="off"
+                        oninput="filterUsers()"
+                    >
+
+                </div>
+
+
+                <!-- ==========================================
+                     LISTE DES UTILISATEURS
+                     ========================================== -->
+
+                <div class="admin-section">
+
+                    <h3>
+                        UTILISATEURS
+                    </h3>
+
+
+                    <div id="user-list">
+
+                        <p>
+                            LOADING USERS...
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==========================================
+                     ÉDITEUR UTILISATEUR
+                     ========================================== -->
+
+                <div
+                    id="admin-user-editor"
+                    class="admin-section hidden"
+                >
+
+                    <h3>
+                        ÉDITION UTILISATEUR
+                    </h3>
+
+
+                    <div id="selected-user-info">
+
+                        <!-- Rempli par JavaScript -->
+
+                    </div>
+
+
+                    <!-- ======================================
+                         CLEARANCE
+                         ====================================== -->
+
+                    <div class="admin-control">
+
+                        <label>
+                            CLEARANCE GLOBAL
+                        </label>
+
+
+                        <select
+                            id="edit-user-clearance"
+                            onchange="saveUserClearance()"
+                        >
+
+                            <option value="1">
+                                ACC-1
+                            </option>
+
+                            <option value="2">
+                                ACC-2
+                            </option>
+
+                            <option value="3">
+                                ACC-3
+                            </option>
+
+                            <option value="4">
+                                ACC-4
+                            </option>
+
+                            <option value="5">
+                                ACC-5
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- ======================================
+                         RÔLE SYSTÈME
+                         ====================================== -->
+
+                    <div class="admin-control">
+
+                        <label>
+                            RÔLE SYSTÈME
+                        </label>
+
+
+                        <select
+                            id="edit-user-role"
+                            onchange="saveUserSystemRole()"
+                        >
+
+                            <option value="user">
+                                UTILISATEUR
+                            </option>
+
+                            <option value="admin">
+                                ADMIN SYSTEM
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- ======================================
+                         DÉPARTEMENTS
+                         ====================================== -->
+
+                    <div class="admin-control">
+
+                        <label>
+                            DÉPARTEMENTS
+                        </label>
+
+
+                        <div id="selected-user-departments">
+
+                            <!-- Rempli par JavaScript -->
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ======================================
+                         AJOUT DE DÉPARTEMENT
+                         ====================================== -->
+
+                    <div class="admin-control">
+
+                        <label>
+                            AJOUTER UN DÉPARTEMENT
+                        </label>
+
+
+                        <div class="department-add-row">
+
+
+                            <select
+                                id="add-department-select"
+                            >
+
+                            </select>
+
+
+                            <select
+                                id="add-department-rank"
+                            >
+
+                                <option value="1">
+                                    RANK 1
+                                </option>
+
+                                <option value="2">
+                                    RANK 2
+                                </option>
+
+                                <option value="3">
+                                    RANK 3
+                                </option>
+
+                                <option value="4">
+                                    RANK 4
+                                </option>
+
+                                <option value="5">
+                                    RANK 5
+                                </option>
+
+                            </select>
+
+
+                            <button
+                                onclick="addSelectedUserDepartment()"
+                            >
+                                AJOUTER
+                            </button>
+
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ======================================
+                         FERMER ÉDITEUR
+                         ====================================== -->
+
+                    <button
+                        class="admin-close-editor"
+                        onclick="closeUserEditor()"
+                    >
+                        FERMER
+                    </button>
+
+
+                </div>
 
             </div>
 
         </div>
 
+
+    </main>
 
 
     <!-- ==================================================
@@ -748,7 +947,6 @@
         >
             CRX
         </button>
-
 
 
         <!-- MENU START -->
@@ -779,7 +977,6 @@
         </div>
 
 
-
         <div class="taskbar-status">
 
             CONNECTION:
@@ -796,12 +993,12 @@
 </div>
 
 
-
 <!-- ==================================================
      JAVASCRIPT
      ================================================== -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="script.js"></script>
 
 

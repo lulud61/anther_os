@@ -1,4 +1,3 @@
-```css
 * {
     box-sizing: border-box;
 }
@@ -449,9 +448,15 @@ footer {
     background: #242c31;
 }
 
+
+/* ================= GENERAL ================= */
+
 .hidden {
     display: none !important;
 }
+
+
+/* ================= REGISTER ================= */
 
 #register-screen {
     width: 100vw;
@@ -473,8 +478,11 @@ footer {
 
 .secondary-button {
     margin-top: 8px !important;
+
     background: transparent !important;
+
     color: #aaa !important;
+
     border: 1px solid #454e55 !important;
 }
 
@@ -482,6 +490,7 @@ footer {
     background: #171d21 !important;
     color: white !important;
 }
+
 
 /* ==================================================
    USER MANAGEMENT
@@ -493,24 +502,32 @@ footer {
 
 #user-list .file {
     display: flex;
+
     align-items: center;
     justify-content: space-between;
+
     gap: 15px;
+
     min-height: 60px;
 }
 
 #user-list select {
     background: #090d10;
     color: white;
+
     border: 1px solid #59636b;
+
     padding: 8px;
+
     font-family: "Courier New", monospace;
+
     cursor: pointer;
 }
 
 #user-list select:hover {
     background: #171d21;
 }
+
 
 /* ==================================================
    ADMIN - RECHERCHE
@@ -522,16 +539,19 @@ footer {
 
 .admin-search input {
     width: 100%;
-    box-sizing: border-box;
+
     padding: 8px 10px;
 
     background: #080b0e;
+
     color: #d8e0e5;
 
     border: 1px solid #39444c;
+
     outline: none;
 
     font-family: inherit;
+
     font-size: 14px;
 }
 
@@ -545,32 +565,439 @@ footer {
 
 
 /* ==================================================
+   ADMIN - FENÊTRE
+   ================================================== */
+
+/*
+   On garde le comportement normal de .window.
+   On modifie uniquement la taille et la position
+   de la fenêtre ADMIN.
+*/
+
+#admin {
+    position: fixed !important;
+
+    top: 5vh !important;
+
+    left: 50% !important;
+
+    transform: translateX(-50%) !important;
+
+    width: 850px !important;
+
+    max-width: 90vw !important;
+
+    height: 90vh !important;
+
+    max-height: 90vh !important;
+
+    overflow: hidden !important;
+}
+
+
+/* ==================================================
+   ADMIN - CONTENU
+   ================================================== */
+
+/*
+   C'est cette partie qui possède le scroll.
+*/
+
+#admin > .window-content {
+
+    height: calc(90vh - 40px) !important;
+
+    max-height: calc(90vh - 40px) !important;
+
+    min-height: 0 !important;
+
+    overflow-y: auto !important;
+
+    overflow-x: hidden !important;
+
+    padding: 20px !important;
+}
+
+
+/* ==================================================
    ADMIN - LISTE UTILISATEURS
    ================================================== */
 
 #admin #user-list {
-    max-height: 350px;
+
+    max-height: 300px;
+
     overflow-y: auto;
+
     overflow-x: hidden;
+
+    margin-bottom: 20px;
 
     padding-right: 6px;
 }
 
 
-/* Barre de défilement */
+/* ==================================================
+   ADMIN - ÉDITION UTILISATEUR
+   ================================================== */
 
-#admin #user-list::-webkit-scrollbar {
+#admin #admin-user-editor {
+
+    position: static !important;
+
+    display: block;
+
+    width: 100%;
+
+    max-width: 100%;
+
+    height: auto;
+
+    max-height: none;
+
+    margin: 20px 0 0 0;
+
+    padding: 15px;
+
+    box-sizing: border-box;
+
+    overflow: visible;
+
+    background: #0c1114;
+
+    border: 1px solid #39444c;
+}
+
+
+/* ==================================================
+   ADMIN - INFORMATIONS UTILISATEUR
+   ================================================== */
+
+#selected-user-info {
+
+    width: 100%;
+
+    max-width: 100%;
+
+    margin-bottom: 20px;
+
+    padding: 12px;
+
+    box-sizing: border-box;
+
+    overflow-wrap: anywhere;
+
+    word-break: break-word;
+}
+
+
+/* ==================================================
+   ADMIN - CONTRÔLES
+   ================================================== */
+
+#admin .admin-control {
+
+    width: 100%;
+
+    margin-bottom: 18px;
+}
+
+#admin .admin-control label {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 11px;
+
+    color: #8f999f;
+}
+
+
+/* ==================================================
+   ADMIN - SELECTS
+   ================================================== */
+
+#admin-user-editor select {
+
+    background: #090d10;
+
+    color: white;
+
+    border: 1px solid #59636b;
+
+    padding: 8px;
+
+    font-family: "Courier New", monospace;
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+    cursor: pointer;
+}
+
+#admin-user-editor select:hover {
+    background: #171d21;
+}
+
+
+/* ==================================================
+   ADMIN - DÉPARTEMENTS
+   ================================================== */
+
+#selected-user-departments {
+
+    width: 100%;
+
+    max-width: 100%;
+
+    max-height: 180px;
+
+    overflow-y: auto;
+
+    overflow-x: hidden;
+
+    margin-top: 10px;
+
+    box-sizing: border-box;
+}
+
+
+/* ==================================================
+   ADMIN - LIGNE DÉPARTEMENT
+   ================================================== */
+
+#selected-user-departments .department-member {
+
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    width: 100%;
+
+    max-width: 100%;
+
+    margin-bottom: 8px;
+
+    padding: 8px;
+
+    background: #080b0e;
+
+    border: 1px solid #252d32;
+
+    box-sizing: border-box;
+}
+
+
+/* Nom du département */
+
+#selected-user-departments .department-member span {
+
+    flex: 1 1 150px;
+
+    min-width: 0;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* Select du rank */
+
+#selected-user-departments .department-member select {
+
+    flex: 0 1 120px;
+
+    min-width: 100px;
+}
+
+
+/* Bouton retirer */
+
+#selected-user-departments .department-member button {
+
+    flex: 0 0 auto;
+
+    max-width: 100%;
+}
+
+
+/* ==================================================
+   ADMIN - AJOUT DÉPARTEMENT
+   ================================================== */
+
+#admin .department-add-row {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    width: 100%;
+
+    max-width: 100%;
+
+    margin-top: 10px;
+
+    box-sizing: border-box;
+}
+
+#admin .department-add-row select {
+
+    flex: 1 1 150px;
+
+    min-width: 0;
+
+    max-width: 100%;
+}
+
+
+/* ==================================================
+   ADMIN - BOUTON FERMER
+   ================================================== */
+
+#admin .admin-close-editor {
+
+    display: block;
+
+    margin-top: 15px;
+
+    margin-bottom: 5px;
+
+    padding: 9px 15px;
+
+    cursor: pointer;
+}
+
+
+/* ==================================================
+   ADMIN - SCROLLBAR PRINCIPALE
+   ================================================== */
+
+#admin > .window-content::-webkit-scrollbar {
+
     width: 8px;
 }
 
-#admin #user-list::-webkit-scrollbar-track {
+#admin > .window-content::-webkit-scrollbar-track {
+
     background: #080b0e;
 }
 
-#admin #user-list::-webkit-scrollbar-thumb {
+#admin > .window-content::-webkit-scrollbar-thumb {
+
     background: #39444c;
 }
 
-#admin #user-list::-webkit-scrollbar-thumb:hover {
+#admin > .window-content::-webkit-scrollbar-thumb:hover {
+
     background: #59666f;
+}
+
+
+/* ==================================================
+   ADMIN - SCROLLBAR LISTE
+   ================================================== */
+
+#admin #user-list::-webkit-scrollbar,
+#admin #selected-user-departments::-webkit-scrollbar {
+
+    width: 7px;
+}
+
+#admin #user-list::-webkit-scrollbar-track,
+#admin #selected-user-departments::-webkit-scrollbar-track {
+
+    background: #080b0e;
+}
+
+#admin #user-list::-webkit-scrollbar-thumb,
+#admin #selected-user-departments::-webkit-scrollbar-thumb {
+
+    background: #39444c;
+
+    border-radius: 4px;
+}
+
+
+/* ==================================================
+   PETITS ÉCRANS
+   ================================================== */
+
+@media (max-height: 700px) {
+
+    #admin {
+
+        top: 3vh !important;
+
+        height: 94vh !important;
+
+        max-height: 94vh !important;
+    }
+
+    #admin > .window-content {
+
+        height: calc(94vh - 40px) !important;
+
+        max-height: calc(94vh - 40px) !important;
+
+        padding: 15px !important;
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    #admin {
+
+        width: 94vw !important;
+
+        max-width: 94vw !important;
+
+        height: 90vh !important;
+
+        max-height: 90vh !important;
+
+        left: 3vw !important;
+
+        transform: none !important;
+    }
+
+    #admin > .window-content {
+
+        height: calc(90vh - 40px) !important;
+
+        max-height: calc(90vh - 40px) !important;
+
+        padding: 12px !important;
+    }
+
+    #admin .department-add-row {
+
+        flex-direction: column;
+    }
+
+    #admin .department-add-row select,
+    #admin .department-add-row button {
+
+        width: 100%;
+    }
+
+    #selected-user-departments .department-member {
+
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    #selected-user-departments .department-member select,
+    #selected-user-departments .department-member button {
+
+        width: 100%;
+    }
 }

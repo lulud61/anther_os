@@ -32,11 +32,18 @@ let currentProfile = null;
 let adminUsers = [];
 let adminDocuments = [];
 
+let departments = [];
+
+let selectedAdminUser = null;
+let selectedAdminUserDepartments = [];
+
+
 // ==================================================
 // ÉCRAN DE CRÉATION DE COMPTE
 // ==================================================
 
 function showRegister() {
+
     console.log("showRegister()");
 
     document
@@ -48,11 +55,13 @@ function showRegister() {
         .classList.remove("hidden");
 }
 
+
 // ==================================================
 // RETOUR À LA CONNEXION
 // ==================================================
 
 function showLogin() {
+
     console.log("showLogin()");
 
     document
@@ -63,6 +72,7 @@ function showLogin() {
         .getElementById("login-screen")
         .classList.remove("hidden");
 }
+
 
 // ==================================================
 // CRÉATION DE COMPTE
@@ -95,17 +105,23 @@ async function register() {
 
     errorBox.textContent = "";
 
+
     // ----------------------------------------------
     // Vérifications
     // ----------------------------------------------
 
-    if (!username || !password || !confirmPassword) {
+    if (
+        !username ||
+        !password ||
+        !confirmPassword
+    ) {
 
         errorBox.textContent =
             "TOUS LES CHAMPS SONT REQUIS";
 
         return;
     }
+
 
     if (username.length < 3) {
 
@@ -115,6 +131,7 @@ async function register() {
         return;
     }
 
+
     if (password.length < 6) {
 
         errorBox.textContent =
@@ -122,6 +139,7 @@ async function register() {
 
         return;
     }
+
 
     if (password !== confirmPassword) {
 
@@ -131,24 +149,33 @@ async function register() {
         return;
     }
 
+
     try {
 
         // ------------------------------------------
-        // Création du compte Supabase Auth
+        // Email interne ANTHER OS
         // ------------------------------------------
 
         const email =
             username.toLowerCase() +
             "@anther-os.local";
 
+
+        // ------------------------------------------
+        // Création Auth Supabase
+        // ------------------------------------------
+
         const {
             data,
             error
         } =
             await supabaseClient.auth.signUp({
+
                 email: email,
                 password: password
+
             });
+
 
         if (error) {
 
@@ -156,6 +183,7 @@ async function register() {
                 "REGISTER AUTH ERROR:",
                 error
             );
+
 
             if (
                 error.message
@@ -176,6 +204,7 @@ async function register() {
             return;
         }
 
+
         if (!data.user) {
 
             errorBox.textContent =
@@ -183,6 +212,7 @@ async function register() {
 
             return;
         }
+
 
         // ------------------------------------------
         // Création du profil ANTHER OS
@@ -194,11 +224,24 @@ async function register() {
             await supabaseClient
                 .from("users")
                 .insert({
-                    auth_id: data.user.id,
-                    username: username,
-                    name: username.toUpperCase(),
-                    clearance: 1
+
+                    auth_id:
+                        data.user.id,
+
+                    username:
+                        username,
+
+                    name:
+                        username.toUpperCase(),
+
+                    clearance:
+                        1,
+
+                    system_role:
+                        "user"
+
                 });
+
 
         if (profileError) {
 
@@ -213,6 +256,7 @@ async function register() {
             return;
         }
 
+
         // ------------------------------------------
         // Succès
         // ------------------------------------------
@@ -222,20 +266,25 @@ async function register() {
             username
         );
 
+
         errorBox.textContent =
             "COMPTE CRÉÉ — ACCÈS ACC-1";
 
-        // Nettoyage
+
         usernameInput.value = "";
         passwordInput.value = "";
         confirmInput.value = "";
 
-        // Retour à la connexion
-        setTimeout(function() {
 
-            showLogin();
+        setTimeout(
+            function() {
 
-        }, 1500);
+                showLogin();
+
+            },
+            1500
+        );
+
 
     } catch (error) {
 
@@ -248,6 +297,7 @@ async function register() {
             "ERREUR LORS DE LA CRÉATION DU COMPTE";
     }
 }
+
 
 // ==================================================
 // CONNEXION
@@ -266,6 +316,7 @@ async function login() {
     const errorBox =
         document.getElementById("login-error");
 
+
     const username =
         usernameInput.value
             .trim()
@@ -274,7 +325,9 @@ async function login() {
     const password =
         passwordInput.value;
 
+
     errorBox.textContent = "";
+
 
     if (!username || !password) {
 
@@ -284,11 +337,13 @@ async function login() {
         return;
     }
 
+
     try {
 
         const email =
             username +
             "@anther-os.local";
+
 
         const {
             data,
@@ -296,9 +351,12 @@ async function login() {
         } =
             await supabaseClient.auth
                 .signInWithPassword({
+
                     email: email,
                     password: password
+
                 });
+
 
         if (error) {
 
@@ -313,11 +371,13 @@ async function login() {
             return;
         }
 
+
         currentUser =
             data.user;
 
+
         // ------------------------------------------
-        // Récupération du profil
+        // Profil
         // ------------------------------------------
 
         const {
@@ -333,6 +393,7 @@ async function login() {
                 )
                 .single();
 
+
         if (profileError) {
 
             console.error(
@@ -343,16 +404,20 @@ async function login() {
             errorBox.textContent =
                 "PROFIL ANTHER OS INTROUVABLE";
 
-            await supabaseClient.auth.signOut();
+            await supabaseClient
+                .auth
+                .signOut();
 
             return;
         }
 
+
         currentProfile =
             profile;
 
+
         // ------------------------------------------
-        // Affichage du système
+        // Affichage OS
         // ------------------------------------------
 
         document
@@ -367,10 +432,12 @@ async function login() {
             .getElementById("os")
             .classList.remove("hidden");
 
+
         document
             .getElementById("current-user")
             .textContent =
             currentProfile.name;
+
 
         document
             .getElementById("clearance")
@@ -378,10 +445,12 @@ async function login() {
             "ACC-" +
             currentProfile.clearance;
 
+
         document
             .getElementById("system-user")
             .textContent =
             currentProfile.name;
+
 
         document
             .getElementById("system-clearance")
@@ -389,12 +458,15 @@ async function login() {
             "ACC-" +
             currentProfile.clearance;
 
+
         updatePermissions();
+
 
         document
             .getElementById("system-message")
             .textContent =
             "AUTHENTICATION SUCCESSFUL";
+
 
         document
             .getElementById("terminal-output")
@@ -403,6 +475,7 @@ async function login() {
             "Welcome " +
             currentProfile.name +
             ".<br>";
+
 
     } catch (error) {
 
@@ -416,8 +489,9 @@ async function login() {
     }
 }
 
+
 // ==================================================
-// PERMISSIONS
+// PERMISSIONS GÉNÉRALES
 // ==================================================
 
 function updatePermissions() {
@@ -427,22 +501,44 @@ function updatePermissions() {
 
     if (!adminIcon) return;
 
+
     if (!currentProfile) {
 
-        adminIcon.classList.add("hidden");
+        adminIcon.classList.add(
+            "hidden"
+        );
 
         return;
     }
 
-    if (currentProfile.clearance >= 2) {
 
-        adminIcon.classList.remove("hidden");
+    /*
+     * L'Admin System a toujours accès
+     * à l'administration.
+     *
+     * Pour les autres utilisateurs,
+     * l'accès à la fenêtre sera déterminé
+     * par leurs départements.
+     */
 
-    } else {
+    if (
+        currentProfile.system_role ===
+        "admin"
+    ) {
 
-        adminIcon.classList.add("hidden");
+        adminIcon.classList.remove(
+            "hidden"
+        );
+
+        return;
     }
+
+
+    adminIcon.classList.remove(
+        "hidden"
+    );
 }
+
 
 // ==================================================
 // OUVRIR UNE FENÊTRE
@@ -450,21 +546,35 @@ function updatePermissions() {
 
 function openWindow(id) {
 
+    // ----------------------------------------------
+    // ADMIN
+    // ----------------------------------------------
+
     if (id === "admin") {
 
-        if (
-            !currentProfile ||
-            currentProfile.clearance < 2
-        ) {
+        if (!currentProfile) {
 
-            alert("ACCESS DENIED");
+            alert(
+                "ACCESS DENIED"
+            );
 
             return;
         }
+
+
+        openAdmin();
+
+        return;
     }
+
+
+    // ----------------------------------------------
+    // Fenêtre normale
+    // ----------------------------------------------
 
     const windowElement =
         document.getElementById(id);
+
 
     if (windowElement) {
 
@@ -473,16 +583,17 @@ function openWindow(id) {
             .remove("hidden");
     }
 
-    if (id === "admin") {
 
-        loadUsers();
-    }
+    // ----------------------------------------------
+    // Documents
+    // ----------------------------------------------
 
     if (id === "documents") {
 
         loadDocuments();
     }
 }
+
 
 // ==================================================
 // FERMER UNE FENÊTRE
@@ -493,6 +604,7 @@ function closeWindow(id) {
     const windowElement =
         document.getElementById(id);
 
+
     if (windowElement) {
 
         windowElement
@@ -500,6 +612,7 @@ function closeWindow(id) {
             .add("hidden");
     }
 }
+
 
 // ==================================================
 // MENU START
@@ -513,6 +626,7 @@ function toggleStart() {
         .toggle("hidden");
 }
 
+
 // ==================================================
 // DÉCONNEXION
 // ==================================================
@@ -523,45 +637,57 @@ async function logout() {
         .auth
         .signOut();
 
+
     currentUser = null;
     currentProfile = null;
+
 
     document
         .getElementById("os")
         .classList
         .add("hidden");
 
+
     document
         .getElementById("register-screen")
         .classList
         .add("hidden");
+
 
     document
         .getElementById("login-screen")
         .classList
         .remove("hidden");
 
+
     document
         .getElementById("username")
         .value = "";
+
 
     document
         .getElementById("password")
         .value = "";
 
+
     document
         .getElementById("login-error")
         .textContent = "";
 
+
     document
         .querySelectorAll(".window")
-        .forEach(function(windowElement) {
+        .forEach(
+            function(windowElement) {
 
-            windowElement
-                .classList
-                .add("hidden");
-        });
+                windowElement
+                    .classList
+                    .add("hidden");
+
+            }
+        );
 }
+
 
 // ==================================================
 // HORLOGE
@@ -572,22 +698,39 @@ function updateClock() {
     const now =
         new Date();
 
+
     const hours =
-        String(now.getHours())
-            .padStart(2, "0");
+        String(
+            now.getHours()
+        ).padStart(
+            2,
+            "0"
+        );
+
 
     const minutes =
-        String(now.getMinutes())
-            .padStart(2, "0");
+        String(
+            now.getMinutes()
+        ).padStart(
+            2,
+            "0"
+        );
+
 
     const seconds =
-        String(now.getSeconds())
-            .padStart(2, "0");
+        String(
+            now.getSeconds()
+        ).padStart(
+            2,
+            "0"
+        );
+
 
     const clock =
         document.getElementById(
             "system-clock"
         );
+
 
     if (clock) {
 
@@ -600,6 +743,7 @@ function updateClock() {
     }
 }
 
+
 setInterval(
     updateClock,
     1000
@@ -607,34 +751,46 @@ setInterval(
 
 updateClock();
 
+
 // ==================================================
 // TERMINAL
 // ==================================================
 
 function terminalKey(event) {
 
-    if (event.key !== "Enter") return;
+    if (
+        event.key !==
+        "Enter"
+    ) {
+        return;
+    }
+
 
     const input =
         document.getElementById(
             "terminal-command"
         );
 
+
     const output =
         document.getElementById(
             "terminal-output"
         );
+
 
     const command =
         input.value
             .trim()
             .toLowerCase();
 
+
     if (!command) return;
+
 
     output.innerHTML +=
         "<br>root@anther:~$ " +
         command;
+
 
     if (command === "help") {
 
@@ -646,7 +802,10 @@ function terminalKey(event) {
             "<br>clear" +
             "<br>logout";
 
-    } else if (command === "whoami") {
+
+    } else if (
+        command === "whoami"
+    ) {
 
         if (currentProfile) {
 
@@ -654,10 +813,18 @@ function terminalKey(event) {
                 "<br>User: " +
                 currentProfile.name +
                 "<br>Clearance: ACC-" +
-                currentProfile.clearance;
+                currentProfile.clearance +
+                "<br>Role: " +
+                (
+                    currentProfile.system_role ||
+                    "user"
+                );
         }
 
-    } else if (command === "status") {
+
+    } else if (
+        command === "status"
+    ) {
 
         output.innerHTML +=
             "<br>ANTHER OS : ONLINE" +
@@ -665,13 +832,20 @@ function terminalKey(event) {
             "<br>NETWORK : ONLINE" +
             "<br>SECURITY : ACTIVE";
 
-    } else if (command === "clear") {
+
+    } else if (
+        command === "clear"
+    ) {
 
         output.innerHTML = "";
 
-    } else if (command === "logout") {
+
+    } else if (
+        command === "logout"
+    ) {
 
         logout();
+
 
     } else {
 
@@ -679,11 +853,98 @@ function terminalKey(event) {
             "<br>Command not found.";
     }
 
+
     input.value = "";
 }
 
+
 // ==================================================
-// GESTION DES UTILISATEURS
+// ADMINISTRATION
+// ==================================================
+
+
+// ==================================================
+// CHARGER LES DÉPARTEMENTS
+// ==================================================
+
+async function loadDepartments() {
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from("departments")
+            .select("*")
+            .order(
+                "name"
+            );
+
+
+    if (error) {
+
+        console.error(
+            "DEPARTMENTS LOAD ERROR:",
+            error
+        );
+
+        return;
+    }
+
+
+    departments =
+        data || [];
+
+
+    populateDepartmentSelect();
+}
+
+
+// ==================================================
+// REMPLIR LE SELECT DÉPARTEMENT
+// ==================================================
+
+function populateDepartmentSelect() {
+
+    const select =
+        document.getElementById(
+            "add-department-select"
+        );
+
+
+    if (!select) return;
+
+
+    select.innerHTML = "";
+
+
+    departments.forEach(
+        function(department) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                department.id;
+
+
+            option.textContent =
+                department.name.toUpperCase();
+
+
+            select.appendChild(
+                option
+            );
+        }
+    );
+}
+
+
+// ==================================================
+// CHARGER UTILISATEURS
 // ==================================================
 
 async function loadUsers() {
@@ -693,21 +954,22 @@ async function loadUsers() {
             "user-list"
         );
 
+
     if (!userList) return;
+
 
     userList.innerHTML =
         "<p>LOADING USERS...</p>";
 
-    if (
-        !currentProfile ||
-        currentProfile.clearance < 2
-    ) {
+
+    if (!currentProfile) {
 
         userList.innerHTML =
             "<p>ACCESS DENIED</p>";
 
         return;
     }
+
 
     const {
         data,
@@ -723,6 +985,7 @@ async function loadUsers() {
                 }
             );
 
+
     if (error) {
 
         console.error(
@@ -730,22 +993,26 @@ async function loadUsers() {
             error
         );
 
+
         userList.innerHTML =
             "<p>DATABASE ERROR</p>";
 
         return;
     }
 
+
     adminUsers =
         data || [];
+
 
     renderUsers(
         adminUsers
     );
 }
 
+
 // ==================================================
-// AFFICHER LES UTILISATEURS
+// AFFICHER UTILISATEURS
 // ==================================================
 
 function renderUsers(users) {
@@ -755,17 +1022,23 @@ function renderUsers(users) {
             "user-list"
         );
 
+
     if (!userList) return;
+
 
     userList.innerHTML = "";
 
-    if (users.length === 0) {
+
+    if (
+        users.length === 0
+    ) {
 
         userList.innerHTML =
             "<p>NO USER FOUND</p>";
 
         return;
     }
+
 
     users.forEach(
         function(user) {
@@ -775,86 +1048,79 @@ function renderUsers(users) {
                     "div"
                 );
 
+
             container.className =
-                "file";
+                "file admin-user";
+
 
             const info =
                 document.createElement(
                     "div"
                 );
 
+
+            const roleText =
+                user.system_role ===
+                "admin"
+                    ? "ADMIN SYSTEM"
+                    : "USER";
+
+
             info.innerHTML =
                 "<strong>" +
-                (user.name || "") +
+                escapeHTML(
+                    user.name ||
+                    user.username
+                ) +
                 "</strong>" +
+
                 "<br>" +
-                (user.username || "") +
-                " — ACC-" +
-                user.clearance;
+
+                "<small>" +
+                escapeHTML(
+                    user.username ||
+                    ""
+                ) +
+                "</small>" +
+
+                "<br>" +
+
+                "<small>" +
+                "ACC-" +
+                user.clearance +
+                " | " +
+                roleText +
+                "</small>";
+
 
             container.appendChild(
                 info
             );
 
-            if (
-                user.id !== currentProfile.id &&
-                user.clearance <
-                    currentProfile.clearance
-            ) {
 
-                const select =
-                    document.createElement(
-                        "select"
-                    );
-
-                for (
-                    let rank = 1;
-                    rank <
-                    currentProfile.clearance;
-                    rank++
-                ) {
-
-                    const option =
-                        document.createElement(
-                            "option"
-                        );
-
-                    option.value =
-                        rank;
-
-                    option.textContent =
-                        "ACC-" +
-                        rank;
-
-                    if (
-                        rank ===
-                        user.clearance
-                    ) {
-
-                        option.selected =
-                            true;
-                    }
-
-                    select.appendChild(
-                        option
-                    );
-                }
-
-                select.onchange =
-                    function() {
-
-                        changeRank(
-                            user.id,
-                            Number(
-                                select.value
-                            )
-                        );
-                    };
-
-                container.appendChild(
-                    select
+            const editButton =
+                document.createElement(
+                    "button"
                 );
-            }
+
+
+            editButton.textContent =
+                "MODIFIER";
+
+
+            editButton.onclick =
+                function() {
+
+                    openUserEditor(
+                        user
+                    );
+                };
+
+
+            container.appendChild(
+                editButton
+            );
+
 
             userList.appendChild(
                 container
@@ -862,6 +1128,37 @@ function renderUsers(users) {
         }
     );
 }
+
+
+// ==================================================
+// PROTECTION HTML
+// ==================================================
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+}
+
 
 // ==================================================
 // RECHERCHE UTILISATEUR
@@ -874,12 +1171,15 @@ function filterUsers() {
             "admin-search"
         );
 
+
     if (!searchInput) return;
+
 
     const search =
         searchInput.value
             .trim()
             .toLowerCase();
+
 
     if (!search) {
 
@@ -890,183 +1190,862 @@ function filterUsers() {
         return;
     }
 
+
     const filteredUsers =
         adminUsers.filter(
             function(user) {
 
                 const username =
                     String(
-                        user.username || ""
+                        user.username ||
+                        ""
                     ).toLowerCase();
+
 
                 const name =
                     String(
-                        user.name || ""
+                        user.name ||
+                        ""
                     ).toLowerCase();
 
+
                 return (
-                    username.includes(search) ||
-                    name.includes(search)
+                    username.includes(
+                        search
+                    ) ||
+                    name.includes(
+                        search
+                    )
                 );
             }
         );
+
 
     renderUsers(
         filteredUsers
     );
 }
 
+
 // ==================================================
-// MODIFICATION DU RANG
+// OUVRIR ÉDITEUR UTILISATEUR
 // ==================================================
 
-async function changeRank(
-    userId,
+async function openUserEditor(
+    user
+) {
+
+    selectedAdminUser =
+        user;
+
+
+    const editor =
+        document.getElementById(
+            "admin-user-editor"
+        );
+
+
+    if (!editor) return;
+
+
+    editor.classList.remove(
+        "hidden"
+    );
+
+
+    const info =
+        document.getElementById(
+            "selected-user-info"
+        );
+
+
+    info.innerHTML =
+        "<strong>" +
+        escapeHTML(
+            user.name ||
+            user.username
+        ) +
+        "</strong>" +
+
+        "<br>PSEUDO : " +
+
+        escapeHTML(
+            user.username ||
+            ""
+        ) +
+
+        "<br>ID : " +
+
+        user.id;
+
+
+    const clearance =
+        document.getElementById(
+            "edit-user-clearance"
+        );
+
+
+    clearance.value =
+        String(
+            user.clearance ||
+            1
+        );
+
+
+    const role =
+        document.getElementById(
+            "edit-user-role"
+        );
+
+
+    role.value =
+        user.system_role ||
+        "user";
+
+
+    await loadUserDepartments(
+        user.id
+    );
+}
+
+
+// ==================================================
+// FERMER ÉDITEUR
+// ==================================================
+
+function closeUserEditor() {
+
+    selectedAdminUser =
+        null;
+
+
+    selectedAdminUserDepartments =
+        [];
+
+
+    const editor =
+        document.getElementById(
+            "admin-user-editor"
+        );
+
+
+    if (editor) {
+
+        editor.classList.add(
+            "hidden"
+        );
+    }
+}
+
+
+// ==================================================
+// CHARGER DÉPARTEMENTS UTILISATEUR
+// ==================================================
+
+async function loadUserDepartments(
+    userId
+) {
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "department_members"
+            )
+            .select(`
+                id,
+                department_rank,
+                department_id,
+                departments (
+                    id,
+                    name
+                )
+            `)
+            .eq(
+                "user_id",
+                userId
+            );
+
+
+    if (error) {
+
+        console.error(
+            "USER DEPARTMENTS ERROR:",
+            error
+        );
+
+        return;
+    }
+
+
+    selectedAdminUserDepartments =
+        data || [];
+
+
+    renderUserDepartments();
+}
+
+
+// ==================================================
+// AFFICHER DÉPARTEMENTS UTILISATEUR
+// ==================================================
+
+function renderUserDepartments() {
+
+    const container =
+        document.getElementById(
+            "selected-user-departments"
+        );
+
+
+    if (!container) return;
+
+
+    container.innerHTML = "";
+
+
+    if (
+        selectedAdminUserDepartments
+            .length === 0
+    ) {
+
+        container.innerHTML =
+            "<p>NO DEPARTMENT</p>";
+
+        return;
+    }
+
+
+    selectedAdminUserDepartments
+        .forEach(
+            function(member) {
+
+                const row =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                row.className =
+                    "department-member";
+
+
+                const departmentName =
+                    member.departments
+                        ? member.departments.name
+                        : "UNKNOWN";
+
+
+                const label =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                label.textContent =
+                    departmentName.toUpperCase();
+
+
+                row.appendChild(
+                    label
+                );
+
+
+                // ----------------------------------
+                // Rank
+                // ----------------------------------
+
+                const rank =
+                    document.createElement(
+                        "select"
+                    );
+
+
+                for (
+                    let i = 1;
+                    i <= 5;
+                    i++
+                ) {
+
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
+
+
+                    option.value =
+                        i;
+
+
+                    option.textContent =
+                        "RANK " +
+                        i;
+
+
+                    if (
+                        i ===
+                        member.department_rank
+                    ) {
+
+                        option.selected =
+                            true;
+                    }
+
+
+                    rank.appendChild(
+                        option
+                    );
+                }
+
+
+                rank.onchange =
+                    function() {
+
+                        changeDepartmentRank(
+                            member.id,
+                            Number(
+                                rank.value
+                            )
+                        );
+                    };
+
+
+                row.appendChild(
+                    rank
+                );
+
+
+                // ----------------------------------
+                // Retirer
+                // ----------------------------------
+
+                const remove =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                remove.textContent =
+                    "RETIRER";
+
+
+                remove.onclick =
+                    function() {
+
+                        removeUserDepartment(
+                            member.id
+                        );
+                    };
+
+
+                row.appendChild(
+                    remove
+                );
+
+
+                container.appendChild(
+                    row
+                );
+            }
+        );
+}
+
+
+// ==================================================
+// AJOUTER DÉPARTEMENT
+// ==================================================
+
+async function addSelectedUserDepartment() {
+
+    if (!selectedAdminUser) {
+        return;
+    }
+
+
+    const departmentSelect =
+        document.getElementById(
+            "add-department-select"
+        );
+
+
+    const rankSelect =
+        document.getElementById(
+            "add-department-rank"
+        );
+
+
+    const departmentId =
+        Number(
+            departmentSelect.value
+        );
+
+
+    const rank =
+        Number(
+            rankSelect.value
+        );
+
+
+    if (!departmentId) {
+
+        alert(
+            "SELECT A DEPARTMENT"
+        );
+
+        return;
+    }
+
+
+    const alreadyMember =
+        selectedAdminUserDepartments
+            .some(
+                function(member) {
+
+                    return (
+                        member.department_id ===
+                        departmentId
+                    );
+                }
+            );
+
+
+    if (alreadyMember) {
+
+        alert(
+            "USER IS ALREADY IN THIS DEPARTMENT"
+        );
+
+        return;
+    }
+
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .from(
+                "department_members"
+            )
+            .insert({
+
+                user_id:
+                    selectedAdminUser.id,
+
+                department_id:
+                    departmentId,
+
+                department_rank:
+                    rank
+
+            });
+
+
+    if (error) {
+
+        console.error(
+            "DEPARTMENT ADD ERROR:",
+            error
+        );
+
+
+        alert(
+            "ERREUR :\n\n" +
+            error.message
+        );
+
+
+        return;
+    }
+
+
+    await loadUserDepartments(
+        selectedAdminUser.id
+    );
+}
+
+
+// ==================================================
+// RETIRER DÉPARTEMENT
+// ==================================================
+
+async function removeUserDepartment(
+    membershipId
+) {
+
+    if (!selectedAdminUser) {
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            "RETIRER CET UTILISATEUR DU DÉPARTEMENT ?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .from(
+                "department_members"
+            )
+            .delete()
+            .eq(
+                "id",
+                membershipId
+            );
+
+
+    if (error) {
+
+        console.error(
+            "DEPARTMENT REMOVE ERROR:",
+            error
+        );
+
+
+        alert(
+            "ERREUR :\n\n" +
+            error.message
+        );
+
+
+        return;
+    }
+
+
+    await loadUserDepartments(
+        selectedAdminUser.id
+    );
+}
+
+
+// ==================================================
+// MODIFIER RANK DÉPARTEMENTAL
+// ==================================================
+
+async function changeDepartmentRank(
+    membershipId,
     newRank
 ) {
 
-    if (!currentProfile) return;
+    newRank =
+        Number(newRank);
+
 
     if (
         newRank < 1 ||
-        newRank >=
-            currentProfile.clearance
+        newRank > 5
+    ) {
+
+        alert(
+            "INVALID DEPARTMENT RANK"
+        );
+
+        return;
+    }
+
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .from(
+                "department_members"
+            )
+            .update({
+
+                department_rank:
+                    newRank
+
+            })
+            .eq(
+                "id",
+                membershipId
+            );
+
+
+    if (error) {
+
+        console.error(
+            "DEPARTMENT RANK ERROR:",
+            error
+        );
+
+
+        alert(
+            "ERREUR :\n\n" +
+            error.message
+        );
+
+
+        return;
+    }
+
+
+    await loadUserDepartments(
+        selectedAdminUser.id
+    );
+}
+
+
+// ==================================================
+// MODIFIER CLEARANCE
+// ==================================================
+
+async function saveUserClearance() {
+
+    if (!selectedAdminUser) {
+        return;
+    }
+
+
+    const select =
+        document.getElementById(
+            "edit-user-clearance"
+        );
+
+
+    const newClearance =
+        Number(
+            select.value
+        );
+
+
+    if (
+        newClearance < 1 ||
+        newClearance > 5
     ) {
 
         alert(
             "INVALID CLEARANCE"
         );
 
-        loadUsers();
-
         return;
     }
 
-    const {
-        error
-    } =
-        await supabaseClient
-            .rpc(
-                "change_user_clearance",
-                {
-                    target_user_id:
-                        userId,
-
-                    new_clearance:
-                        newRank
-                }
-            );
-
-    if (error) {
-
-        console.error(
-            "CHANGE CLEARANCE ERROR:",
-            error
-        );
-
-        alert(
-            "ACCESS DENIED : " +
-            error.message
-        );
-
-        loadUsers();
-
-        return;
-    }
-
-    console.log(
-        "CLEARANCE UPDATED → ACC-" +
-        newRank
-    );
-
-    loadUsers();
-}
-
-// ==================================================
-// DÉTECTION DE SESSION EXISTANTE
-// ==================================================
-
-async function checkSession() {
 
     const {
-        data
-    } =
-        await supabaseClient
-            .auth
-            .getSession();
-
-    if (!data.session) return;
-
-    currentUser =
-        data.session.user;
-
-    const {
-        data: profile,
         error
     } =
         await supabaseClient
             .from("users")
-            .select("*")
+            .update({
+
+                clearance:
+                    newClearance
+
+            })
             .eq(
-                "auth_id",
-                currentUser.id
-            )
-            .single();
+                "id",
+                selectedAdminUser.id
+            );
 
-    if (error || !profile) {
 
-        await supabaseClient
-            .auth
-            .signOut();
+    if (error) {
+
+        console.error(
+            "CLEARANCE UPDATE ERROR:",
+            error
+        );
+
+
+        alert(
+            "ERREUR :\n\n" +
+            error.message
+        );
+
 
         return;
     }
 
-    currentProfile =
-        profile;
 
-    document
-        .getElementById("login-screen")
-        .classList
-        .add("hidden");
+    selectedAdminUser.clearance =
+        newClearance;
 
-    document
-        .getElementById("register-screen")
-        .classList
-        .add("hidden");
 
-    document
-        .getElementById("os")
+    const localUser =
+        adminUsers.find(
+            function(user) {
+
+                return (
+                    user.id ===
+                    selectedAdminUser.id
+                );
+            }
+        );
+
+
+    if (localUser) {
+
+        localUser.clearance =
+            newClearance;
+    }
+
+
+    renderUsers(
+        adminUsers
+    );
+
+
+    console.log(
+        "CLEARANCE UPDATED"
+    );
+}
+
+
+// ==================================================
+// MODIFIER RÔLE SYSTÈME
+// ==================================================
+
+async function saveUserSystemRole() {
+
+    if (!selectedAdminUser) {
+        return;
+    }
+
+
+    const select =
+        document.getElementById(
+            "edit-user-role"
+        );
+
+
+    const newRole =
+        select.value;
+
+
+    if (
+        newRole !== "user" &&
+        newRole !== "admin"
+    ) {
+
+        alert(
+            "INVALID SYSTEM ROLE"
+        );
+
+        return;
+    }
+
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .from("users")
+            .update({
+
+                system_role:
+                    newRole
+
+            })
+            .eq(
+                "id",
+                selectedAdminUser.id
+            );
+
+
+    if (error) {
+
+        console.error(
+            "SYSTEM ROLE ERROR:",
+            error
+        );
+
+
+        alert(
+            "ERREUR :\n\n" +
+            error.message
+        );
+
+
+        return;
+    }
+
+
+    selectedAdminUser.system_role =
+        newRole;
+
+
+    const localUser =
+        adminUsers.find(
+            function(user) {
+
+                return (
+                    user.id ===
+                    selectedAdminUser.id
+                );
+            }
+        );
+
+
+    if (localUser) {
+
+        localUser.system_role =
+            newRole;
+    }
+
+
+    renderUsers(
+        adminUsers
+    );
+
+
+    console.log(
+        "SYSTEM ROLE UPDATED:",
+        newRole
+    );
+}
+
+
+// ==================================================
+// OUVRIR ADMIN
+// ==================================================
+
+async function openAdmin() {
+
+    if (!currentProfile) {
+
+        alert(
+            "ACCESS DENIED"
+        );
+
+        return;
+    }
+
+
+    const windowElement =
+        document.getElementById(
+            "admin"
+        );
+
+
+    if (!windowElement) {
+        return;
+    }
+
+
+    windowElement
         .classList
         .remove("hidden");
 
-    document
-        .getElementById("current-user")
-        .textContent =
-        profile.name;
 
-    document
-        .getElementById("clearance")
-        .textContent =
-        "ACC-" +
-        profile.clearance;
+    await loadDepartments();
 
-    document
-        .getElementById("system-user")
-        .textContent =
-        profile.name;
-
-    document
-        .getElementById("system-clearance")
-        .textContent =
-        "ACC-" +
-        profile.clearance;
-
-    updatePermissions();
+    await loadUsers();
 }
 
+
 // ==================================================
-// GESTION DES DOCUMENTS GOOGLE DOCS
+// DOCUMENTS GOOGLE DOCS
 // ==================================================
 
 async function loadDocuments() {
@@ -1076,10 +2055,13 @@ async function loadDocuments() {
             "document-list"
         );
 
+
     if (!documentList) return;
+
 
     documentList.innerHTML =
         "<p>LOADING DOCUMENTS...</p>";
+
 
     const {
         data,
@@ -1095,6 +2077,7 @@ async function loadDocuments() {
                 }
             );
 
+
     if (error) {
 
         console.error(
@@ -1102,45 +2085,68 @@ async function loadDocuments() {
             error
         );
 
+
         documentList.innerHTML =
             "<p>DATABASE ERROR</p>";
+
 
         return;
     }
 
+
     adminDocuments =
         data || [];
+
 
     renderDocuments(
         adminDocuments
     );
 }
 
+
 // ==================================================
-// AFFICHER LES DOCUMENTS
+// AFFICHER DOCUMENTS
 // ==================================================
 
-function renderDocuments(documents) {
+function renderDocuments(
+    documents
+) {
 
     const documentList =
-        document.getElementById("document-list");
+        document.getElementById(
+            "document-list"
+        );
+
 
     if (!documentList) return;
 
+
     documentList.innerHTML = "";
 
+
+    // ----------------------------------------------
+    // Filtrage par Clearance
+    // ----------------------------------------------
+
     const accessibleDocuments =
-        documents.filter(function(doc) {
+        documents.filter(
+            function(doc) {
 
-            return (
-                currentProfile &&
-                currentProfile.clearance >=
-                (doc.minimum_clearance || 1)
-            );
+                return (
+                    currentProfile &&
+                    currentProfile.clearance >=
+                    (
+                        doc.minimum_clearance ||
+                        1
+                    )
+                );
+            }
+        );
 
-        });
 
-    if (accessibleDocuments.length === 0) {
+    if (
+        accessibleDocuments.length === 0
+    ) {
 
         documentList.innerHTML =
             "<p>NO DOCUMENT AVAILABLE</p>";
@@ -1148,50 +2154,85 @@ function renderDocuments(documents) {
         return;
     }
 
-    accessibleDocuments.forEach(function(doc) {
 
-        const container =
-            document.createElement("div");
+    accessibleDocuments.forEach(
+        function(doc) {
 
-        container.className = "file";
+            const container =
+                document.createElement(
+                    "div"
+                );
 
-        const info =
-            document.createElement("div");
 
-        info.innerHTML =
-            "<strong>📄 " +
-            (doc.name || "") +
-            "</strong>" +
-            "<br>" +
-            "<small>ACCESS: ACC-" +
-            (doc.minimum_clearance || 1) +
-            "</small>";
+            container.className =
+                "file";
 
-        container.appendChild(info);
 
-        const openButton =
-            document.createElement("button");
+            const info =
+                document.createElement(
+                    "div"
+                );
 
-        openButton.textContent = "OUVRIR";
 
-        openButton.onclick = function() {
+            info.innerHTML =
+                "<strong>📄 " +
+                escapeHTML(
+                    doc.name || ""
+                ) +
+                "</strong>" +
 
-            window.open(
-                doc.google_url,
-                "_blank"
+                "<br>" +
+
+                "<small>" +
+                "GOOGLE DOCS" +
+                " — ACCESS: ACC-" +
+                (
+                    doc.minimum_clearance ||
+                    1
+                ) +
+                "</small>";
+
+
+            container.appendChild(
+                info
             );
 
-        };
 
-        container.appendChild(openButton);
+            const openButton =
+                document.createElement(
+                    "button"
+                );
 
-        documentList.appendChild(container);
 
-    });
+            openButton.textContent =
+                "OUVRIR";
+
+
+            openButton.onclick =
+                function() {
+
+                    window.open(
+                        doc.google_url,
+                        "_blank"
+                    );
+                };
+
+
+            container.appendChild(
+                openButton
+            );
+
+
+            documentList.appendChild(
+                container
+            );
+        }
+    );
 }
 
+
 // ==================================================
-// RECHERCHE DE DOCUMENT
+// RECHERCHE DOCUMENT
 // ==================================================
 
 function filterDocuments() {
@@ -1201,12 +2242,15 @@ function filterDocuments() {
             "document-search"
         );
 
+
     if (!searchInput) return;
+
 
     const search =
         searchInput.value
             .trim()
             .toLowerCase();
+
 
     if (!search) {
 
@@ -1217,14 +2261,17 @@ function filterDocuments() {
         return;
     }
 
+
     const filteredDocuments =
         adminDocuments.filter(
             function(doc) {
 
                 const name =
                     String(
-                        doc.name || ""
+                        doc.name ||
+                        ""
                     ).toLowerCase();
+
 
                 return name.includes(
                     search
@@ -1232,79 +2279,132 @@ function filterDocuments() {
             }
         );
 
+
     renderDocuments(
         filteredDocuments
     );
 }
 
+
 // ==================================================
-// AJOUTER UN DOCUMENT
+// AJOUT DOCUMENT
 // ==================================================
 
 async function addDocument() {
 
     if (!currentProfile) {
-        alert("YOU MUST BE LOGGED IN");
+
+        alert(
+            "YOU MUST BE LOGGED IN"
+        );
+
         return;
     }
 
+
     const nameInput =
-        document.getElementById("document-name");
+        document.getElementById(
+            "document-name"
+        );
+
 
     const urlInput =
-        document.getElementById("document-url");
+        document.getElementById(
+            "document-url"
+        );
+
 
     const clearanceInput =
-        document.getElementById("document-clearance");
+        document.getElementById(
+            "document-clearance"
+        );
+
 
     const name =
         nameInput.value.trim();
 
+
     const url =
         urlInput.value.trim();
 
+
     const minimumClearance =
-        Number(clearanceInput.value);
+        Number(
+            clearanceInput.value
+        );
+
 
     if (!name || !url) {
-        alert("DOCUMENT NAME AND LINK REQUIRED");
+
+        alert(
+            "DOCUMENT NAME AND LINK REQUIRED"
+        );
+
         return;
     }
 
-    if (!url.includes("docs.google.com")) {
-        alert("PLEASE ENTER A GOOGLE DOCS LINK");
+
+    if (
+        !url.includes(
+            "docs.google.com"
+        )
+    ) {
+
+        alert(
+            "PLEASE ENTER A GOOGLE DOCS LINK"
+        );
+
         return;
     }
+
 
     if (
         minimumClearance < 1 ||
         minimumClearance > 5
     ) {
-        alert("INVALID CLEARANCE");
+
+        alert(
+            "INVALID CLEARANCE"
+        );
+
         return;
     }
 
-    // On ne peut pas créer un document
-    // avec un niveau supérieur au sien
+
     if (
         minimumClearance >
         currentProfile.clearance
     ) {
+
         alert(
             "YOU CANNOT CREATE A DOCUMENT ABOVE YOUR CLEARANCE"
         );
+
         return;
     }
 
-    const { error } =
+
+    const {
+        error
+    } =
         await supabaseClient
             .from("documents")
             .insert({
-                name: name,
-                google_url: url,
-                created_by: currentProfile.id,
-                minimum_clearance: minimumClearance
+
+                name:
+                    name,
+
+                google_url:
+                    url,
+
+                created_by:
+                    currentProfile.id,
+
+                minimum_clearance:
+                    minimumClearance
+
             });
+
 
     if (error) {
 
@@ -1313,20 +2413,55 @@ async function addDocument() {
             error
         );
 
+
+        console.error(
+            "MESSAGE:",
+            error.message
+        );
+
+
+        console.error(
+            "DETAILS:",
+            error.details
+        );
+
+
+        console.error(
+            "HINT:",
+            error.hint
+        );
+
+
+        console.error(
+            "CODE:",
+            error.code
+        );
+
+
         alert(
             "ERREUR SUPABASE :\n\n" +
             error.message
         );
 
+
         return;
     }
 
+
     nameInput.value = "";
     urlInput.value = "";
-    clearanceInput.value = "1";
+
+
+    if (clearanceInput) {
+
+        clearanceInput.value =
+            "1";
+    }
+
 
     loadDocuments();
 }
+
 
 // ==================================================
 // OUVERTURE DOCUMENTS
@@ -1341,11 +2476,115 @@ function openDocuments() {
     loadDocuments();
 }
 
+
+// ==================================================
+// DÉTECTION SESSION
+// ==================================================
+
+async function checkSession() {
+
+    const {
+        data
+    } =
+        await supabaseClient
+            .auth
+            .getSession();
+
+
+    if (!data.session) {
+        return;
+    }
+
+
+    currentUser =
+        data.session.user;
+
+
+    const {
+        data: profile,
+        error
+    } =
+        await supabaseClient
+            .from("users")
+            .select("*")
+            .eq(
+                "auth_id",
+                currentUser.id
+            )
+            .single();
+
+
+    if (
+        error ||
+        !profile
+    ) {
+
+        await supabaseClient
+            .auth
+            .signOut();
+
+        return;
+    }
+
+
+    currentProfile =
+        profile;
+
+
+    document
+        .getElementById("login-screen")
+        .classList
+        .add("hidden");
+
+
+    document
+        .getElementById("register-screen")
+        .classList
+        .add("hidden");
+
+
+    document
+        .getElementById("os")
+        .classList
+        .remove("hidden");
+
+
+    document
+        .getElementById("current-user")
+        .textContent =
+        profile.name;
+
+
+    document
+        .getElementById("clearance")
+        .textContent =
+        "ACC-" +
+        profile.clearance;
+
+
+    document
+        .getElementById("system-user")
+        .textContent =
+        profile.name;
+
+
+    document
+        .getElementById("system-clearance")
+        .textContent =
+        "ACC-" +
+        profile.clearance;
+
+
+    updatePermissions();
+}
+
+
 // ==================================================
 // INITIALISATION
 // ==================================================
 
 checkSession();
+
 
 console.log(
     "ANTHER OS : JavaScript initialisé"
