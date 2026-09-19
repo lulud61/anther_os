@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
 
@@ -24,7 +24,7 @@
 
 
 <!-- ==================================================
-     ÉCRAN DE CONNEXION
+     LOGIN SCREEN
      ================================================== -->
 
 <div id="login-screen">
@@ -40,13 +40,13 @@
             SYSTEM ONLINE
         </div>
 
-        <h2>AUTHENTIFICATION</h2>
+        <h2>AUTHENTICATION</h2>
 
 
         <input
             type="text"
             id="username"
-            placeholder="Identifiant"
+            placeholder="Username"
             autocomplete="off"
         >
 
@@ -54,12 +54,12 @@
         <input
             type="password"
             id="password"
-            placeholder="Mot de passe"
+            placeholder="Password"
         >
 
 
         <button onclick="login()">
-            ACCÉDER AU SYSTÈME
+            ACCESS SYSTEM
         </button>
 
 
@@ -67,7 +67,7 @@
             class="secondary-button"
             onclick="showRegister()"
         >
-            CRÉER UN COMPTE
+            CREATE ACCOUNT
         </button>
 
 
@@ -84,7 +84,7 @@
 
 
 <!-- ==================================================
-     ÉCRAN DE CRÉATION DE COMPTE
+     ACCOUNT CREATION SCREEN
      ================================================== -->
 
 <div
@@ -105,13 +105,13 @@
         </div>
 
 
-        <h2>CRÉATION DE COMPTE</h2>
+        <h2>ACCOUNT CREATION</h2>
 
 
         <input
             type="text"
             id="new-username"
-            placeholder="Nouvel identifiant"
+            placeholder="New username"
             autocomplete="off"
         >
 
@@ -119,19 +119,19 @@
         <input
             type="password"
             id="new-password"
-            placeholder="Mot de passe"
+            placeholder="Password"
         >
 
 
         <input
             type="password"
             id="new-password-confirm"
-            placeholder="Confirmer le mot de passe"
+            placeholder="Confirm password"
         >
 
 
         <button onclick="register()">
-            CRÉER LE COMPTE
+            CREATE ACCOUNT
         </button>
 
 
@@ -139,7 +139,7 @@
             class="secondary-button"
             onclick="showLogin()"
         >
-            RETOUR
+            BACK
         </button>
 
 
@@ -329,7 +329,7 @@
 
 
         <!-- ==================================================
-             FENÊTRE TERMINAL
+             TERMINAL WINDOW
              ================================================== -->
 
         <div
@@ -386,7 +386,7 @@
 
 
         <!-- ==================================================
-             FENÊTRE FILES
+             FILES WINDOW
              ================================================== -->
 
         <div
@@ -435,266 +435,263 @@
         </div>
 
 
-
         <!-- ==================================================
-     FENÊTRE DOCUMENTS
-     ================================================== -->
+             DOCUMENTS WINDOW
+             ================================================== -->
 
         <div
-    id="documents"
-    class="window hidden"
->
-
-    <div class="window-header">
-
-        DOCUMENTS
-
-        <button
-            onclick="closeWindow('documents')"
-        >
-            ×
-        </button>
-
-    </div>
-
-
-    <div class="window-content">
-
-        <h2>
-            ANTHER DOCUMENTS
-        </h2>
-
-        <p>
-            GOOGLE DOCUMENT DATABASE
-        </p>
-
-        <hr>
-
-
-        <!-- ==========================================
-             RECHERCHE
-             ========================================== -->
-
-        <input
-            type="text"
-            id="document-search"
-            placeholder="Rechercher un document..."
-            autocomplete="off"
-            oninput="filterDocuments()"
+            id="documents"
+            class="window hidden"
         >
 
+            <div class="window-header">
 
-        <!-- ==========================================
-             LISTE DES DOCUMENTS
-             ========================================== -->
-
-        <div id="document-list">
-
-            <p>
-                LOADING DOCUMENTS...
-            </p>
-
-        </div>
-
-
-        <hr>
-
-
-        <!-- ==========================================
-             AJOUT DOCUMENT
-             ========================================== -->
-
-        <h3>
-            ADD DOCUMENT
-        </h3>
-
-
-        <!-- NOM -->
-
-        <label>
-            NOM DU DOCUMENT
-        </label>
-
-        <input
-            type="text"
-            id="document-name"
-            placeholder="Nom du document"
-            autocomplete="off"
-        >
-
-
-        <!-- LIEN -->
-
-        <label>
-            LIEN GOOGLE DOCS
-        </label>
-
-        <input
-            type="url"
-            id="document-url"
-            placeholder="Lien Google Docs"
-            autocomplete="off"
-        >
-
-
-        <!-- ==========================================
-             ACCÈS GLOBAL
-             ========================================== -->
-
-        <div class="document-access-section">
-
-            <label>
-                NIVEAU D'ACCÈS GLOBAL
-            </label>
-
-            <select id="document-clearance">
-
-                <option value="1">
-                    ACC-1 — PUBLIC
-                </option>
-
-                <option value="2">
-                    ACC-2
-                </option>
-
-                <option value="3">
-                    ACC-3
-                </option>
-
-                <option value="4">
-                    ACC-4
-                </option>
-
-                <option value="5">
-                    ACC-5
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <!-- ==========================================
-             ACCÈS DÉPARTEMENTAUX
-             ========================================== -->
-
-        <div class="document-access-section">
-
-            <label>
-                ACCÈS PAR DÉPARTEMENT
-            </label>
-
-            <p class="document-access-info">
-                Un utilisateur pourra voir le document
-                s'il possède le rank requis dans
-                AU MOINS UN des départements configurés.
-            </p>
-
-
-            <!-- LISTE DES DÉPARTEMENTS AJOUTÉS -->
-
-            <div
-                id="document-department-list"
-                class="document-department-list"
-            >
-
-                <p>
-                    AUCUN ACCÈS DÉPARTEMENTAL
-                </p>
-
-            </div>
-
-
-            <!-- AJOUT D'UN DÉPARTEMENT -->
-
-            <div class="department-add-row">
-
-                <select
-                    id="document-department-select"
-                >
-
-                    <!-- Rempli automatiquement par JavaScript -->
-
-                </select>
-
-
-                <select
-                    id="document-department-rank"
-                >
-
-                    <option value="1">
-                        RANK 1
-                    </option>
-
-                    <option value="2">
-                        RANK 2
-                    </option>
-
-                    <option value="3">
-                        RANK 3
-                    </option>
-
-                    <option value="4">
-                        RANK 4
-                    </option>
-
-                    <option value="5">
-                        RANK 5
-                    </option>
-
-                </select>
-
+                DOCUMENTS
 
                 <button
-                    type="button"
-                    onclick="addDocumentDepartment()"
+                    onclick="closeWindow('documents')"
                 >
-                    AJOUTER
+                    ×
                 </button>
 
             </div>
 
+
+            <div class="window-content">
+
+                <h2>
+                    ANTHER DOCUMENTS
+                </h2>
+
+                <p>
+                    GOOGLE DOCUMENT DATABASE
+                </p>
+
+                <hr>
+
+
+                <!-- ================= SEARCH ================= -->
+
+                <input
+                    type="text"
+                    id="document-search"
+                    placeholder="Search documents..."
+                    autocomplete="off"
+                    oninput="filterDocuments()"
+                >
+
+
+                <!-- ================= DOCUMENT LIST ================= -->
+
+                <div id="document-list">
+
+                    <p>
+                        LOADING DOCUMENTS...
+                    </p>
+
+                </div>
+
+
+                <hr>
+
+
+                <!-- ================= ADD DOCUMENT ================= -->
+
+                <h3>
+                    ADD DOCUMENT
+                </h3>
+
+
+                <!-- DOCUMENT NAME -->
+
+                <label>
+                    DOCUMENT NAME
+                </label>
+
+                <input
+                    type="text"
+                    id="document-name"
+                    placeholder="Document name"
+                    autocomplete="off"
+                >
+
+
+                <!-- GOOGLE DOCS LINK -->
+
+                <label>
+                    GOOGLE DOCS LINK
+                </label>
+
+                <input
+                    type="url"
+                    id="document-url"
+                    placeholder="Google Docs link"
+                    autocomplete="off"
+                >
+
+
+                <!-- ==========================================
+                     GLOBAL ACCESS
+                     ========================================== -->
+
+                <div class="document-access-section">
+
+                    <label>
+                        GLOBAL ACCESS LEVEL
+                    </label>
+
+                    <select id="document-clearance">
+
+                        <option value="1">
+                            ACC-1 — PUBLIC
+                        </option>
+
+                        <option value="2">
+                            ACC-2
+                        </option>
+
+                        <option value="3">
+                            ACC-3
+                        </option>
+
+                        <option value="4">
+                            ACC-4
+                        </option>
+
+                        <option value="5">
+                            ACC-5
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- ==========================================
+                     DEPARTMENT ACCESS
+                     ========================================== -->
+
+                <div
+                    id="document-department-access"
+                    class="document-access-section"
+                >
+
+                    <label>
+                        DEPARTMENT ACCESS
+                    </label>
+
+
+                    <p class="document-access-info">
+                        A user will be able to view the document
+                        if they have the required rank in
+                        AT LEAST ONE configured department.
+                    </p>
+
+
+                    <!-- SELECTED DEPARTMENTS -->
+
+                    <div
+                        id="document-department-list"
+                        class="document-department-list"
+                    >
+
+                        <p>
+                            NO DEPARTMENT ACCESS
+                        </p>
+
+                    </div>
+
+
+                    <!-- ADD DEPARTMENT -->
+
+                    <div class="department-add-row">
+
+                        <select
+                            id="document-department-select"
+                        >
+
+                            <!-- Filled automatically by JavaScript -->
+
+                        </select>
+
+
+                        <select
+                            id="document-department-rank"
+                        >
+
+                            <option value="1">
+                                RANK 1
+                            </option>
+
+                            <option value="2">
+                                RANK 2
+                            </option>
+
+                            <option value="3">
+                                RANK 3
+                            </option>
+
+                            <option value="4">
+                                RANK 4
+                            </option>
+
+                            <option value="5">
+                                RANK 5
+                            </option>
+
+                        </select>
+
+
+                        <button
+                            type="button"
+                            onclick="addDocumentDepartment()"
+                        >
+                            ADD
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==========================================
+                     ACCESS RULE PREVIEW
+                     ========================================== -->
+
+                <div class="document-access-preview">
+
+                    <strong>
+                        ACCESS RULE
+                    </strong>
+
+
+                    <p id="document-access-preview">
+
+                        ACC-1 or department access
+
+                    </p>
+
+                </div>
+
+
+                <!-- ==========================================
+                     CREATE DOCUMENT
+                     ========================================== -->
+
+                <button
+                    onclick="addDocument()"
+                >
+                    ADD DOCUMENT
+                </button>
+
+
+            </div>
+
         </div>
-
-
-        <!-- ==========================================
-             RÈGLE D'ACCÈS
-             ========================================== -->
-
-        <div class="document-access-preview">
-
-            <strong>
-                RÈGLE D'ACCÈS
-            </strong>
-
-            <p id="document-access-preview">
-
-                ACC-1 ou accès départemental
-
-            </p>
-
-        </div>
-
-
-        <!-- ==========================================
-             CRÉER
-             ========================================== -->
-
-        <button
-            onclick="addDocument()"
-        >
-            AJOUTER LE DOCUMENT
-        </button>
-
-
-    </div>
-
-        </div>
-```
 
 
         <!-- ==================================================
-             FENÊTRE NETWORK
+             NETWORK WINDOW
              ================================================== -->
 
         <div
@@ -745,7 +742,7 @@
 
 
         <!-- ==================================================
-             FENÊTRE SYSTEM
+             SYSTEM WINDOW
              ================================================== -->
 
         <div
@@ -811,7 +808,7 @@
 
 
         <!-- ==================================================
-             FENÊTRE ADMINISTRATION
+             ADMINISTRATION WINDOW
              ================================================== -->
 
         <div
@@ -839,7 +836,7 @@
 
 
                 <!-- ==========================================
-                     RECHERCHE UTILISATEUR
+                     USER SEARCH
                      ========================================== -->
 
                 <div class="admin-search">
@@ -847,7 +844,7 @@
                     <input
                         type="text"
                         id="admin-search"
-                        placeholder="RECHERCHER UN PSEUDO..."
+                        placeholder="SEARCH USERNAME..."
                         autocomplete="off"
                         oninput="filterUsers()"
                     >
@@ -856,13 +853,13 @@
 
 
                 <!-- ==========================================
-                     LISTE DES UTILISATEURS
+                     USER LIST
                      ========================================== -->
 
                 <div class="admin-section">
 
                     <h3>
-                        UTILISATEURS
+                        USERS
                     </h3>
 
 
@@ -878,7 +875,7 @@
 
 
                 <!-- ==========================================
-                     ÉDITEUR UTILISATEUR
+                     USER EDITOR
                      ========================================== -->
 
                 <div
@@ -887,13 +884,13 @@
                 >
 
                     <h3>
-                        ÉDITION UTILISATEUR
+                        USER EDITOR
                     </h3>
 
 
                     <div id="selected-user-info">
 
-                        <!-- Rempli par JavaScript -->
+                        <!-- Filled by JavaScript -->
 
                     </div>
 
@@ -905,7 +902,7 @@
                     <div class="admin-control">
 
                         <label>
-                            CLEARANCE GLOBAL
+                            GLOBAL CLEARANCE
                         </label>
 
 
@@ -940,13 +937,13 @@
 
 
                     <!-- ======================================
-                         RÔLE SYSTÈME
+                         SYSTEM ROLE
                          ====================================== -->
 
                     <div class="admin-control">
 
                         <label>
-                            RÔLE SYSTÈME
+                            SYSTEM ROLE
                         </label>
 
 
@@ -956,11 +953,11 @@
                         >
 
                             <option value="user">
-                                UTILISATEUR
+                                USER
                             </option>
 
                             <option value="admin">
-                                ADMIN SYSTEM
+                                SYSTEM ADMIN
                             </option>
 
                         </select>
@@ -969,19 +966,19 @@
 
 
                     <!-- ======================================
-                         DÉPARTEMENTS
+                         DEPARTMENTS
                          ====================================== -->
 
                     <div class="admin-control">
 
                         <label>
-                            DÉPARTEMENTS
+                            DEPARTMENTS
                         </label>
 
 
                         <div id="selected-user-departments">
 
-                            <!-- Rempli par JavaScript -->
+                            <!-- Filled by JavaScript -->
 
                         </div>
 
@@ -989,13 +986,13 @@
 
 
                     <!-- ======================================
-                         AJOUT DE DÉPARTEMENT
+                         ADD DEPARTMENT
                          ====================================== -->
 
                     <div class="admin-control">
 
                         <label>
-                            AJOUTER UN DÉPARTEMENT
+                            ADD DEPARTMENT
                         </label>
 
 
@@ -1039,7 +1036,7 @@
                             <button
                                 onclick="addSelectedUserDepartment()"
                             >
-                                AJOUTER
+                                ADD
                             </button>
 
 
@@ -1049,14 +1046,14 @@
 
 
                     <!-- ======================================
-                         FERMER ÉDITEUR
+                         CLOSE EDITOR
                          ====================================== -->
 
                     <button
                         class="admin-close-editor"
                         onclick="closeUserEditor()"
                     >
-                        FERMER
+                        CLOSE
                     </button>
 
 
@@ -1071,7 +1068,7 @@
 
 
     <!-- ==================================================
-         BARRE DES TÂCHES
+         TASKBAR
          ================================================== -->
 
     <footer>
@@ -1085,7 +1082,7 @@
         </button>
 
 
-        <!-- MENU START -->
+        <!-- START MENU -->
 
         <div
             id="start-menu"
