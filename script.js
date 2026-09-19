@@ -1,3 +1,4 @@
+
 // ==================================================
 // ANTHER OS - JAVASCRIPT
 // ==================================================
@@ -22,6 +23,7 @@ const supabaseClient =
 
 console.log("ANTHER DATABASE : client initialisé");
 
+
 // ==================================================
 // VARIABLES
 // ==================================================
@@ -36,6 +38,15 @@ let departments = [];
 
 let selectedAdminUser = null;
 let selectedAdminUserDepartments = [];
+
+
+// ==================================================
+// DOCUMENTS
+// ==================================================
+
+let selectedDocumentDepartments = [];
+
+let currentUserDepartments = [];
 
 
 // ==================================================
@@ -106,10 +117,6 @@ async function register() {
     errorBox.textContent = "";
 
 
-    // ----------------------------------------------
-    // Vérifications
-    // ----------------------------------------------
-
     if (
         !username ||
         !password ||
@@ -152,18 +159,10 @@ async function register() {
 
     try {
 
-        // ------------------------------------------
-        // Email interne ANTHER OS
-        // ------------------------------------------
-
         const email =
             username.toLowerCase() +
             "@anther-os.local";
 
-
-        // ------------------------------------------
-        // Création Auth Supabase
-        // ------------------------------------------
 
         const {
             data,
@@ -214,10 +213,6 @@ async function register() {
         }
 
 
-        // ------------------------------------------
-        // Création du profil ANTHER OS
-        // ------------------------------------------
-
         const {
             error: profileError
         } =
@@ -256,10 +251,6 @@ async function register() {
             return;
         }
 
-
-        // ------------------------------------------
-        // Succès
-        // ------------------------------------------
 
         console.log(
             "COMPTE CRÉÉ :",
@@ -376,10 +367,6 @@ async function login() {
             data.user;
 
 
-        // ------------------------------------------
-        // Profil
-        // ------------------------------------------
-
         const {
             data: profile,
             error: profileError
@@ -416,9 +403,8 @@ async function login() {
             profile;
 
 
-        // ------------------------------------------
-        // Affichage OS
-        // ------------------------------------------
+        await loadCurrentUserDepartments();
+
 
         document
             .getElementById("login-screen")
@@ -491,6 +477,57 @@ async function login() {
 
 
 // ==================================================
+// CHARGER LES DÉPARTEMENTS DE L'UTILISATEUR
+// ==================================================
+
+async function loadCurrentUserDepartments() {
+
+    currentUserDepartments = [];
+
+
+    if (!currentProfile) {
+        return;
+    }
+
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from("department_members")
+            .select(`
+                id,
+                department_rank,
+                department_id,
+                departments (
+                    id,
+                    name
+                )
+            `)
+            .eq(
+                "user_id",
+                currentProfile.id
+            );
+
+
+    if (error) {
+
+        console.error(
+            "CURRENT USER DEPARTMENTS ERROR:",
+            error
+        );
+
+        return;
+    }
+
+
+    currentUserDepartments =
+        data || [];
+}
+
+
+// ==================================================
 // PERMISSIONS GÉNÉRALES
 // ==================================================
 
@@ -512,28 +549,6 @@ function updatePermissions() {
     }
 
 
-    /*
-     * L'Admin System a toujours accès
-     * à l'administration.
-     *
-     * Pour les autres utilisateurs,
-     * l'accès à la fenêtre sera déterminé
-     * par leurs départements.
-     */
-
-    if (
-        currentProfile.system_role ===
-        "admin"
-    ) {
-
-        adminIcon.classList.remove(
-            "hidden"
-        );
-
-        return;
-    }
-
-
     adminIcon.classList.remove(
         "hidden"
     );
@@ -545,10 +560,6 @@ function updatePermissions() {
 // ==================================================
 
 function openWindow(id) {
-
-    // ----------------------------------------------
-    // ADMIN
-    // ----------------------------------------------
 
     if (id === "admin") {
 
@@ -568,10 +579,6 @@ function openWindow(id) {
     }
 
 
-    // ----------------------------------------------
-    // Fenêtre normale
-    // ----------------------------------------------
-
     const windowElement =
         document.getElementById(id);
 
@@ -584,11 +591,9 @@ function openWindow(id) {
     }
 
 
-    // ----------------------------------------------
-    // Documents
-    // ----------------------------------------------
-
     if (id === "documents") {
+
+        setupDocumentDepartmentUI();
 
         loadDocuments();
     }
@@ -640,6 +645,8 @@ async function logout() {
 
     currentUser = null;
     currentProfile = null;
+    currentUserDepartments = [];
+    selectedDocumentDepartments = [];
 
 
     document
@@ -901,7 +908,7 @@ async function loadDepartments() {
 
 
 // ==================================================
-// REMPLIR LE SELECT DÉPARTEMENT
+// REMPLIR LE SELECT DÉPARTEMENT ADMIN
 // ==================================================
 
 function populateDepartmentSelect() {
@@ -1453,10 +1460,6 @@ function renderUserDepartments() {
                 );
 
 
-                // ----------------------------------
-                // Rank
-                // ----------------------------------
-
                 const rank =
                     document.createElement(
                         "select"
@@ -1516,10 +1519,6 @@ function renderUserDepartments() {
                     rank
                 );
 
-
-                // ----------------------------------
-                // Retirer
-                // ----------------------------------
 
                 const remove =
                     document.createElement(
@@ -1894,11 +1893,6 @@ async function saveUserClearance() {
     renderUsers(
         adminUsers
     );
-
-
-    console.log(
-        "CLEARANCE UPDATED"
-    );
 }
 
 
@@ -1997,12 +1991,6 @@ async function saveUserSystemRole() {
     renderUsers(
         adminUsers
     );
-
-
-    console.log(
-        "SYSTEM ROLE UPDATED:",
-        newRole
-    );
 }
 
 
@@ -2048,6 +2036,11 @@ async function openAdmin() {
 // DOCUMENTS GOOGLE DOCS
 // ==================================================
 
+
+// ==================================================
+// CHARGER DOCUMENTS
+// ==================================================
+
 async function loadDocuments() {
 
     const documentList =
@@ -2063,9 +2056,22 @@ async function loadDocuments() {
         "<p>LOADING DOCUMENTS...</p>";
 
 
+    if (!currentProfile) {
+
+        documentList.innerHTML =
+            "<p>ACCESS DENIED</p>";
+
+        return;
+    }
+
+
+    // --------------------------------------------------
+    // Documents
+    // --------------------------------------------------
+
     const {
-        data,
-        error
+        data: documents,
+        error: documentError
     } =
         await supabaseClient
             .from("documents")
@@ -2078,28 +2084,282 @@ async function loadDocuments() {
             );
 
 
-    if (error) {
+    if (documentError) {
 
         console.error(
             "DOCUMENT LOAD ERROR:",
-            error
+            documentError
         );
 
 
         documentList.innerHTML =
             "<p>DATABASE ERROR</p>";
 
-
         return;
     }
 
 
+    const loadedDocuments =
+        documents || [];
+
+
+    // --------------------------------------------------
+    // Charger les règles départementales
+    // --------------------------------------------------
+
+    let documentRules = [];
+
+
+    if (loadedDocuments.length > 0) {
+
+        const documentIds =
+            loadedDocuments.map(
+                function(doc) {
+                    return doc.id;
+                }
+            );
+
+
+        const {
+            data: rules,
+            error: rulesError
+        } =
+            await supabaseClient
+                .from("document_departments")
+                .select(`
+                    id,
+                    document_id,
+                    department_id,
+                    minimum_rank,
+                    departments (
+                        id,
+                        name
+                    )
+                `)
+                .in(
+                    "document_id",
+                    documentIds
+                );
+
+
+        if (rulesError) {
+
+            console.error(
+                "DOCUMENT RULES LOAD ERROR:",
+                rulesError
+            );
+
+        } else {
+
+            documentRules =
+                rules || [];
+        }
+    }
+
+
+    // --------------------------------------------------
+    // Ajouter les règles aux documents
+    // --------------------------------------------------
+
     adminDocuments =
-        data || [];
+        loadedDocuments.map(
+            function(doc) {
+
+                return {
+                    ...doc,
+
+                    department_rules:
+                        documentRules.filter(
+                            function(rule) {
+
+                                return (
+                                    rule.document_id ===
+                                    doc.id
+                                );
+                            }
+                        )
+                };
+            }
+        );
 
 
     renderDocuments(
         adminDocuments
+    );
+}
+
+
+// ==================================================
+// VÉRIFIER SI L'UTILISATEUR PEUT VOIR UN DOCUMENT
+// ==================================================
+
+function canCurrentUserViewDocument(
+    doc
+) {
+
+    if (!currentProfile) {
+        return false;
+    }
+
+
+    // --------------------------------------------------
+    // ADMIN SYSTEM
+    // --------------------------------------------------
+
+    if (
+        currentProfile.system_role ===
+        "admin"
+    ) {
+
+        return true;
+    }
+
+
+    // --------------------------------------------------
+    // CORPORATE / RH
+    // --------------------------------------------------
+
+    const isSpecialDepartment =
+        currentUserDepartments.some(
+            function(member) {
+
+                if (
+                    !member.departments
+                ) {
+                    return false;
+                }
+
+
+                const departmentName =
+                    member.departments.name
+                        .toLowerCase();
+
+
+                return (
+                    departmentName ===
+                        "corporate" ||
+                    departmentName ===
+                        "ressource humaine"
+                );
+            }
+        );
+
+
+    if (isSpecialDepartment) {
+        return true;
+    }
+
+
+    // --------------------------------------------------
+    // ACC GLOBAL
+    // --------------------------------------------------
+
+    const minimumClearance =
+        Number(
+            doc.minimum_clearance ||
+            1
+        );
+
+
+    if (
+        Number(
+            currentProfile.clearance
+        ) >= minimumClearance
+    ) {
+
+        return true;
+    }
+
+
+    // --------------------------------------------------
+    // DEPARTEMENTS
+    // --------------------------------------------------
+
+    const rules =
+        doc.department_rules || [];
+
+
+    return rules.some(
+        function(rule) {
+
+            const userMembership =
+                currentUserDepartments.find(
+                    function(member) {
+
+                        return (
+                            Number(
+                                member.department_id
+                            ) ===
+                            Number(
+                                rule.department_id
+                            )
+                        );
+                    }
+                );
+
+
+            if (!userMembership) {
+                return false;
+            }
+
+
+            return (
+                Number(
+                    userMembership.department_rank
+                ) >=
+                Number(
+                    rule.minimum_rank
+                )
+            );
+        }
+    );
+}
+
+
+// ==================================================
+// AFFICHER LES RÈGLES D'ACCÈS
+// ==================================================
+
+function getDocumentAccessText(doc) {
+
+    const accessParts = [];
+
+
+    // ACC
+    accessParts.push(
+        "ACC-" +
+        (
+            doc.minimum_clearance ||
+            1
+        )
+    );
+
+
+    // Départements
+    const rules =
+        doc.department_rules || [];
+
+
+    rules.forEach(
+        function(rule) {
+
+            const departmentName =
+                rule.departments
+                    ? rule.departments.name
+                    : "UNKNOWN";
+
+
+            accessParts.push(
+                departmentName.toUpperCase() +
+                " RANK " +
+                rule.minimum_rank
+            );
+        }
+    );
+
+
+    return accessParts.join(
+        " OR "
     );
 }
 
@@ -2124,21 +2384,16 @@ function renderDocuments(
     documentList.innerHTML = "";
 
 
-    // ----------------------------------------------
-    // Filtrage par Clearance
-    // ----------------------------------------------
+    // --------------------------------------------------
+    // Filtrage des documents
+    // --------------------------------------------------
 
     const accessibleDocuments =
         documents.filter(
             function(doc) {
 
-                return (
-                    currentProfile &&
-                    currentProfile.clearance >=
-                    (
-                        doc.minimum_clearance ||
-                        1
-                    )
+                return canCurrentUserViewDocument(
+                    doc
                 );
             }
         );
@@ -2174,6 +2429,12 @@ function renderDocuments(
                 );
 
 
+            const accessText =
+                getDocumentAccessText(
+                    doc
+                );
+
+
             info.innerHTML =
                 "<strong>📄 " +
                 escapeHTML(
@@ -2185,10 +2446,9 @@ function renderDocuments(
 
                 "<small>" +
                 "GOOGLE DOCS" +
-                " — ACCESS: ACC-" +
-                (
-                    doc.minimum_clearance ||
-                    1
+                " — ACCESS: " +
+                escapeHTML(
+                    accessText
                 ) +
                 "</small>";
 
@@ -2210,6 +2470,20 @@ function renderDocuments(
 
             openButton.onclick =
                 function() {
+
+                    if (
+                        !canCurrentUserViewDocument(
+                            doc
+                        )
+                    ) {
+
+                        alert(
+                            "ACCESS DENIED"
+                        );
+
+                        return;
+                    }
+
 
                     window.open(
                         doc.google_url,
@@ -2287,6 +2561,511 @@ function filterDocuments() {
 
 
 // ==================================================
+// INTERFACE DES DÉPARTEMENTS POUR LES DOCUMENTS
+// ==================================================
+
+function setupDocumentDepartmentUI() {
+
+    const nameInput =
+        document.getElementById(
+            "document-name"
+        );
+
+
+    const urlInput =
+        document.getElementById(
+            "document-url"
+        );
+
+
+    const clearanceInput =
+        document.getElementById(
+            "document-clearance"
+        );
+
+
+    if (
+        !nameInput ||
+        !urlInput ||
+        !clearanceInput
+    ) {
+
+        return;
+    }
+
+
+    // Si déjà créée
+    if (
+        document.getElementById(
+            "document-department-access"
+        )
+    ) {
+
+        loadDocumentDepartmentSelectors();
+
+        return;
+    }
+
+
+    const accessBox =
+        document.createElement(
+            "div"
+        );
+
+
+    accessBox.id =
+        "document-department-access";
+
+
+    accessBox.style.marginTop =
+        "15px";
+
+
+    accessBox.style.marginBottom =
+        "15px";
+
+
+    accessBox.innerHTML = `
+
+        <div
+            style="
+                border:1px solid #39444c;
+                padding:12px;
+                background:#0c1114;
+            "
+        >
+
+            <strong>
+                ACCÈS PAR DÉPARTEMENT
+            </strong>
+
+            <p
+                style="
+                    font-size:11px;
+                    opacity:.7;
+                    margin:8px 0;
+                "
+            >
+                L'utilisateur pourra accéder au document
+                si son ACC est suffisante OU si son rank
+                dans l'un des départements sélectionnés
+                est suffisant.
+            </p>
+
+            <div
+                id="document-department-list"
+            >
+            </div>
+
+            <div
+                style="
+                    display:flex;
+                    gap:6px;
+                    margin-top:10px;
+                    flex-wrap:wrap;
+                "
+            >
+
+                <select
+                    id="document-department-select"
+                >
+                </select>
+
+                <select
+                    id="document-department-rank"
+                >
+                    <option value="1">
+                        RANK 1
+                    </option>
+
+                    <option value="2">
+                        RANK 2
+                    </option>
+
+                    <option value="3">
+                        RANK 3
+                    </option>
+
+                    <option value="4">
+                        RANK 4
+                    </option>
+
+                    <option value="5">
+                        RANK 5
+                    </option>
+                </select>
+
+                <button
+                    type="button"
+                    onclick="addDocumentDepartment()"
+                >
+                    + AJOUTER
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+
+    // --------------------------------------------------
+    // Insérer après la clearance
+    // --------------------------------------------------
+
+    if (
+        clearanceInput.parentElement
+    ) {
+
+        clearanceInput.parentElement
+            .insertAdjacentElement(
+                "afterend",
+                accessBox
+            );
+
+    } else {
+
+        urlInput.parentElement
+            .appendChild(
+                accessBox
+            );
+    }
+
+
+    loadDocumentDepartmentSelectors();
+}
+
+
+// ==================================================
+// REMPLIR LES DÉPARTEMENTS DU DOCUMENT
+// ==================================================
+
+function loadDocumentDepartmentSelectors() {
+
+    const select =
+        document.getElementById(
+            "document-department-select"
+        );
+
+
+    if (!select) return;
+
+
+    select.innerHTML = "";
+
+
+    departments.forEach(
+        function(department) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                department.id;
+
+
+            option.textContent =
+                department.name.toUpperCase();
+
+
+            select.appendChild(
+                option
+            );
+        }
+    );
+
+
+    renderSelectedDocumentDepartments();
+}
+
+
+// ==================================================
+// AJOUTER UN DÉPARTEMENT AU DOCUMENT
+// ==================================================
+
+function addDocumentDepartment() {
+
+    const departmentSelect =
+        document.getElementById(
+            "document-department-select"
+        );
+
+
+    const rankSelect =
+        document.getElementById(
+            "document-department-rank"
+        );
+
+
+    if (
+        !departmentSelect ||
+        !rankSelect
+    ) {
+
+        return;
+    }
+
+
+    const departmentId =
+        Number(
+            departmentSelect.value
+        );
+
+
+    const rank =
+        Number(
+            rankSelect.value
+        );
+
+
+    if (!departmentId) {
+
+        return;
+    }
+
+
+    const department =
+        departments.find(
+            function(dep) {
+
+                return (
+                    Number(dep.id) ===
+                    departmentId
+                );
+            }
+        );
+
+
+    if (!department) {
+        return;
+    }
+
+
+    const alreadySelected =
+        selectedDocumentDepartments.some(
+            function(rule) {
+
+                return (
+                    Number(
+                        rule.departmentId
+                    ) === departmentId
+                );
+            }
+        );
+
+
+    if (alreadySelected) {
+
+        alert(
+            "CE DÉPARTEMENT EST DÉJÀ AJOUTÉ"
+        );
+
+        return;
+    }
+
+
+    selectedDocumentDepartments.push({
+
+        departmentId:
+            departmentId,
+
+        departmentName:
+            department.name,
+
+        rank:
+            rank
+
+    });
+
+
+    renderSelectedDocumentDepartments();
+}
+
+
+// ==================================================
+// AFFICHER LES DÉPARTEMENTS SÉLECTIONNÉS
+// ==================================================
+
+function renderSelectedDocumentDepartments() {
+
+    const container =
+        document.getElementById(
+            "document-department-list"
+        );
+
+
+    if (!container) return;
+
+
+    container.innerHTML = "";
+
+
+    if (
+        selectedDocumentDepartments.length ===
+        0
+    ) {
+
+        container.innerHTML =
+            `
+            <p
+                style="
+                    font-size:11px;
+                    opacity:.6;
+                "
+            >
+                AUCUN DÉPARTEMENT CONFIGURÉ
+            </p>
+            `;
+
+        return;
+    }
+
+
+    selectedDocumentDepartments.forEach(
+        function(rule, index) {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+
+            row.style.display =
+                "flex";
+
+
+            row.style.alignItems =
+                "center";
+
+
+            row.style.gap =
+                "8px";
+
+
+            row.style.marginBottom =
+                "6px";
+
+
+            row.style.padding =
+                "6px";
+
+
+            row.style.border =
+                "1px solid #303940";
+
+
+            const label =
+                document.createElement(
+                    "span"
+                );
+
+
+            label.style.flex =
+                "1";
+
+
+            label.textContent =
+                rule.departmentName.toUpperCase() +
+                " — RANK " +
+                rule.rank;
+
+
+            row.appendChild(
+                label
+            );
+
+
+            const remove =
+                document.createElement(
+                    "button"
+                );
+
+
+            remove.type =
+                "button";
+
+
+            remove.textContent =
+                "RETIRER";
+
+
+            remove.onclick =
+                function() {
+
+                    removeDocumentDepartment(
+                        index
+                    );
+                };
+
+
+            row.appendChild(
+                remove
+            );
+
+
+            container.appendChild(
+                row
+            );
+        }
+    );
+}
+
+
+// ==================================================
+// RETIRER DÉPARTEMENT DOCUMENT
+// ==================================================
+
+function removeDocumentDepartment(
+    index
+) {
+
+    selectedDocumentDepartments.splice(
+        index,
+        1
+    );
+
+
+    renderSelectedDocumentDepartments();
+}
+
+
+// ==================================================
+// CHARGER DÉPARTEMENTS AVANT CRÉATION
+// ==================================================
+
+async function prepareDocumentDepartments() {
+
+    if (
+        departments.length === 0
+    ) {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("departments")
+                .select("*")
+                .order(
+                    "name"
+                );
+
+
+        if (!error) {
+
+            departments =
+                data || [];
+        }
+    }
+
+
+    setupDocumentDepartmentUI();
+}
+
+
+// ==================================================
 // AJOUT DOCUMENT
 // ==================================================
 
@@ -2300,6 +3079,11 @@ async function addDocument() {
 
         return;
     }
+
+
+    // S'assurer que l'interface
+    // des départements existe
+    await prepareDocumentDepartments();
 
 
     const nameInput =
@@ -2373,7 +3157,9 @@ async function addDocument() {
 
     if (
         minimumClearance >
-        currentProfile.clearance
+        currentProfile.clearance &&
+        currentProfile.system_role !==
+            "admin"
     ) {
 
         alert(
@@ -2384,7 +3170,84 @@ async function addDocument() {
     }
 
 
+    // --------------------------------------------------
+    // Vérifier les ranks départementaux
+    // --------------------------------------------------
+
+    if (
+        currentProfile.system_role !==
+        "admin"
+    ) {
+
+        for (
+            const rule
+            of selectedDocumentDepartments
+        ) {
+
+            const membership =
+                currentUserDepartments.find(
+                    function(member) {
+
+                        return (
+                            Number(
+                                member.department_id
+                            ) ===
+                            Number(
+                                rule.departmentId
+                            )
+                        );
+                    }
+                );
+
+
+            const isSpecialDepartment =
+                rule.departmentName
+                    .toLowerCase() ===
+                    "corporate" ||
+                rule.departmentName
+                    .toLowerCase() ===
+                    "ressource humaine";
+
+
+            if (
+                !membership &&
+                !isSpecialDepartment
+            ) {
+
+                alert(
+                    "VOUS N'ÊTES PAS MEMBRE DU DÉPARTEMENT : " +
+                    rule.departmentName
+                );
+
+                return;
+            }
+
+
+            if (
+                membership &&
+                Number(
+                    membership.department_rank
+                ) <
+                Number(rule.rank)
+            ) {
+
+                alert(
+                    "VOTRE RANK EST INSUFFISANT POUR : " +
+                    rule.departmentName
+                );
+
+                return;
+            }
+        }
+    }
+
+
+    // --------------------------------------------------
+    // Créer document
+    // --------------------------------------------------
+
     const {
+        data: documentData,
         error
     } =
         await supabaseClient
@@ -2403,7 +3266,9 @@ async function addDocument() {
                 minimum_clearance:
                     minimumClearance
 
-            });
+            })
+            .select()
+            .single();
 
 
     if (error) {
@@ -2448,6 +3313,79 @@ async function addDocument() {
     }
 
 
+    // --------------------------------------------------
+    // Ajouter les départements
+    // --------------------------------------------------
+
+    if (
+        selectedDocumentDepartments.length >
+        0
+    ) {
+
+        const departmentRows =
+            selectedDocumentDepartments.map(
+                function(rule) {
+
+                    return {
+
+                        document_id:
+                            documentData.id,
+
+                        department_id:
+                            rule.departmentId,
+
+                        minimum_rank:
+                            rule.rank
+
+                    };
+                }
+            );
+
+
+        const {
+            error: departmentError
+        } =
+            await supabaseClient
+                .from(
+                    "document_departments"
+                )
+                .insert(
+                    departmentRows
+                );
+
+
+        if (departmentError) {
+
+            console.error(
+                "DOCUMENT DEPARTMENT ERROR:",
+                departmentError
+            );
+
+
+            // Nettoyage du document
+            await supabaseClient
+                .from("documents")
+                .delete()
+                .eq(
+                    "id",
+                    documentData.id
+                );
+
+
+            alert(
+                "ERREUR LORS DE LA CONFIGURATION DES DÉPARTEMENTS :\n\n" +
+                departmentError.message
+            );
+
+            return;
+        }
+    }
+
+
+    // --------------------------------------------------
+    // Reset
+    // --------------------------------------------------
+
     nameInput.value = "";
     urlInput.value = "";
 
@@ -2459,7 +3397,13 @@ async function addDocument() {
     }
 
 
-    loadDocuments();
+    selectedDocumentDepartments = [];
+
+
+    renderSelectedDocumentDepartments();
+
+
+    await loadDocuments();
 }
 
 
@@ -2467,13 +3411,15 @@ async function addDocument() {
 // OUVERTURE DOCUMENTS
 // ==================================================
 
-function openDocuments() {
+async function openDocuments() {
+
+    await prepareDocumentDepartments();
 
     openWindow(
         "documents"
     );
 
-    loadDocuments();
+    await loadDocuments();
 }
 
 
@@ -2531,6 +3477,9 @@ async function checkSession() {
         profile;
 
 
+    await loadCurrentUserDepartments();
+
+
     document
         .getElementById("login-screen")
         .classList
@@ -2582,6 +3531,16 @@ async function checkSession() {
 // ==================================================
 // INITIALISATION
 // ==================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        prepareDocumentDepartments();
+
+    }
+);
+
 
 checkSession();
 

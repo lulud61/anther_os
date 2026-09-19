@@ -435,126 +435,262 @@
         </div>
 
 
+
         <!-- ==================================================
-             FENÊTRE DOCUMENTS
-             ================================================== -->
+     FENÊTRE DOCUMENTS
+     ================================================== -->
 
         <div
-            id="documents"
-            class="window hidden"
+    id="documents"
+    class="window hidden"
+>
+
+    <div class="window-header">
+
+        DOCUMENTS
+
+        <button
+            onclick="closeWindow('documents')"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="window-content">
+
+        <h2>
+            ANTHER DOCUMENTS
+        </h2>
+
+        <p>
+            GOOGLE DOCUMENT DATABASE
+        </p>
+
+        <hr>
+
+
+        <!-- ==========================================
+             RECHERCHE
+             ========================================== -->
+
+        <input
+            type="text"
+            id="document-search"
+            placeholder="Rechercher un document..."
+            autocomplete="off"
+            oninput="filterDocuments()"
         >
 
-            <div class="window-header">
 
-                DOCUMENTS
+        <!-- ==========================================
+             LISTE DES DOCUMENTS
+             ========================================== -->
 
-                <button
-                    onclick="closeWindow('documents')"
-                >
-                    ×
-                </button>
+        <div id="document-list">
+
+            <p>
+                LOADING DOCUMENTS...
+            </p>
+
+        </div>
+
+
+        <hr>
+
+
+        <!-- ==========================================
+             AJOUT DOCUMENT
+             ========================================== -->
+
+        <h3>
+            ADD DOCUMENT
+        </h3>
+
+
+        <!-- NOM -->
+
+        <label>
+            NOM DU DOCUMENT
+        </label>
+
+        <input
+            type="text"
+            id="document-name"
+            placeholder="Nom du document"
+            autocomplete="off"
+        >
+
+
+        <!-- LIEN -->
+
+        <label>
+            LIEN GOOGLE DOCS
+        </label>
+
+        <input
+            type="url"
+            id="document-url"
+            placeholder="Lien Google Docs"
+            autocomplete="off"
+        >
+
+
+        <!-- ==========================================
+             ACCÈS GLOBAL
+             ========================================== -->
+
+        <div class="document-access-section">
+
+            <label>
+                NIVEAU D'ACCÈS GLOBAL
+            </label>
+
+            <select id="document-clearance">
+
+                <option value="1">
+                    ACC-1 — PUBLIC
+                </option>
+
+                <option value="2">
+                    ACC-2
+                </option>
+
+                <option value="3">
+                    ACC-3
+                </option>
+
+                <option value="4">
+                    ACC-4
+                </option>
+
+                <option value="5">
+                    ACC-5
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- ==========================================
+             ACCÈS DÉPARTEMENTAUX
+             ========================================== -->
+
+        <div class="document-access-section">
+
+            <label>
+                ACCÈS PAR DÉPARTEMENT
+            </label>
+
+            <p class="document-access-info">
+                Un utilisateur pourra voir le document
+                s'il possède le rank requis dans
+                AU MOINS UN des départements configurés.
+            </p>
+
+
+            <!-- LISTE DES DÉPARTEMENTS AJOUTÉS -->
+
+            <div
+                id="document-department-list"
+                class="document-department-list"
+            >
+
+                <p>
+                    AUCUN ACCÈS DÉPARTEMENTAL
+                </p>
 
             </div>
 
 
-            <div class="window-content">
+            <!-- AJOUT D'UN DÉPARTEMENT -->
 
-                <h2>
-                    ANTHER DOCUMENTS
-                </h2>
+            <div class="department-add-row">
 
-                <p>
-                    GOOGLE DOCUMENT DATABASE
-                </p>
+                <select
+                    id="document-department-select"
+                >
 
-                <hr>
+                    <!-- Rempli automatiquement par JavaScript -->
 
-
-                <label>
-                    NIVEAU D'ACCÈS MINIMAL
-                </label>
+                </select>
 
 
-                <select id="document-clearance">
+                <select
+                    id="document-department-rank"
+                >
 
                     <option value="1">
-                        ACC-1 — PUBLIC
+                        RANK 1
                     </option>
 
                     <option value="2">
-                        ACC-2
+                        RANK 2
                     </option>
 
                     <option value="3">
-                        ACC-3
+                        RANK 3
                     </option>
 
                     <option value="4">
-                        ACC-4
+                        RANK 4
                     </option>
 
                     <option value="5">
-                        ACC-5
+                        RANK 5
                     </option>
 
                 </select>
 
 
-                <!-- RECHERCHE -->
-
-                <input
-                    type="text"
-                    id="document-search"
-                    placeholder="Rechercher un document..."
-                    autocomplete="off"
-                    oninput="filterDocuments()"
+                <button
+                    type="button"
+                    onclick="addDocumentDepartment()"
                 >
-
-
-                <!-- LISTE DES DOCUMENTS -->
-
-                <div id="document-list">
-
-                    <p>
-                        LOADING DOCUMENTS...
-                    </p>
-
-                </div>
-
-
-                <hr>
-
-
-                <!-- AJOUT -->
-
-                <h3>
-                    ADD DOCUMENT
-                </h3>
-
-
-                <input
-                    type="text"
-                    id="document-name"
-                    placeholder="Nom du document"
-                    autocomplete="off"
-                >
-
-
-                <input
-                    type="url"
-                    id="document-url"
-                    placeholder="Lien Google Docs"
-                    autocomplete="off"
-                >
-
-
-                <button onclick="addDocument()">
-                    AJOUTER LE DOCUMENT
+                    AJOUTER
                 </button>
 
             </div>
 
         </div>
+
+
+        <!-- ==========================================
+             RÈGLE D'ACCÈS
+             ========================================== -->
+
+        <div class="document-access-preview">
+
+            <strong>
+                RÈGLE D'ACCÈS
+            </strong>
+
+            <p id="document-access-preview">
+
+                ACC-1 ou accès départemental
+
+            </p>
+
+        </div>
+
+
+        <!-- ==========================================
+             CRÉER
+             ========================================== -->
+
+        <button
+            onclick="addDocument()"
+        >
+            AJOUTER LE DOCUMENT
+        </button>
+
+
+    </div>
+
+        </div>
+```
 
 
         <!-- ==================================================

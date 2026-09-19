@@ -1001,3 +1001,85 @@ footer {
         width: 100%;
     }
 }
+
+/* ==================================================
+   DOCUMENTS — SCROLL
+   ================================================== */
+
+#documents {
+    max-height: 85vh !important;
+    overflow: hidden !important;
+}
+
+
+/* Zone de contenu scrollable */
+
+#documents > .window-content {
+    height: calc(85vh - 45px) !important;
+    max-height: calc(85vh - 45px) !important;
+
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
+    box-sizing: border-box;
+    padding-bottom: 30px;
+}
+
+
+/* Espacement des sections */
+
+#documents .document-access-section {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+
+/* Texte explicatif */
+
+#documents .document-access-info {
+    font-size: 12px;
+    opacity: 0.75;
+    margin: 8px 0;
+}
+
+
+/* Liste des accès départementaux */
+
+#documents #document-department-list {
+    margin: 10px 0;
+    padding: 8px;
+    border: 1px solid #39444c;
+    background: #0c1114;
+}
+
+
+/* Aperçu de la règle */
+
+#documents .document-access-preview {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 10px;
+
+    border: 1px solid #39444c;
+    background: #0c1114;
+}
+
+
+/* Ligne d'ajout département */
+
+#documents .department-add-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+
+/* Empêche les champs de dépasser */
+
+#documents input,
+#documents select,
+#documents button {
+    max-width: 100%;
+    box-sizing: border-box;
+}
