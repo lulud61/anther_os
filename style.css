@@ -530,7 +530,7 @@ footer {
 
 
 /* ==================================================
-   ADMIN - RECHERCHE
+   ADMIN - SEARCH
    ================================================== */
 
 .admin-search {
@@ -565,14 +565,8 @@ footer {
 
 
 /* ==================================================
-   ADMIN - FENÊTRE
+   ADMIN - WINDOW
    ================================================== */
-
-/*
-   On garde le comportement normal de .window.
-   On modifie uniquement la taille et la position
-   de la fenêtre ADMIN.
-*/
 
 #admin {
     position: fixed !important;
@@ -596,12 +590,8 @@ footer {
 
 
 /* ==================================================
-   ADMIN - CONTENU
+   ADMIN - CONTENT
    ================================================== */
-
-/*
-   C'est cette partie qui possède le scroll.
-*/
 
 #admin > .window-content {
 
@@ -620,12 +610,25 @@ footer {
 
 
 /* ==================================================
-   ADMIN - LISTE UTILISATEURS
+   ADMIN - USER LIST
    ================================================== */
+
+/*
+   La liste utilise maintenant beaucoup plus
+   d'espace lorsqu'il n'y a pas d'éditeur ouvert.
+*/
+
+#admin .admin-section:first-of-type {
+    display: flex;
+    flex-direction: column;
+}
+
 
 #admin #user-list {
 
-    max-height: 300px;
+    height: 55vh;
+
+    max-height: 55vh;
 
     overflow-y: auto;
 
@@ -637,8 +640,19 @@ footer {
 }
 
 
+/*
+   Quand l'éditeur est affiché,
+   il apparaît normalement sous la liste.
+*/
+
+#admin #admin-user-editor:not(.hidden) {
+
+    margin-top: 20px;
+}
+
+
 /* ==================================================
-   ADMIN - ÉDITION UTILISATEUR
+   ADMIN - USER EDITOR
    ================================================== */
 
 #admin #admin-user-editor {
@@ -670,7 +684,7 @@ footer {
 
 
 /* ==================================================
-   ADMIN - INFORMATIONS UTILISATEUR
+   ADMIN - USER INFORMATION
    ================================================== */
 
 #selected-user-info {
@@ -692,7 +706,7 @@ footer {
 
 
 /* ==================================================
-   ADMIN - CONTRÔLES
+   ADMIN - CONTROLS
    ================================================== */
 
 #admin .admin-control {
@@ -743,7 +757,7 @@ footer {
 
 
 /* ==================================================
-   ADMIN - DÉPARTEMENTS
+   ADMIN - DEPARTMENTS
    ================================================== */
 
 #selected-user-departments {
@@ -765,7 +779,7 @@ footer {
 
 
 /* ==================================================
-   ADMIN - LIGNE DÉPARTEMENT
+   ADMIN - DEPARTMENT ROW
    ================================================== */
 
 #selected-user-departments .department-member {
@@ -794,7 +808,7 @@ footer {
 }
 
 
-/* Nom du département */
+/* Department name */
 
 #selected-user-departments .department-member span {
 
@@ -806,7 +820,7 @@ footer {
 }
 
 
-/* Select du rank */
+/* Rank select */
 
 #selected-user-departments .department-member select {
 
@@ -816,7 +830,7 @@ footer {
 }
 
 
-/* Bouton retirer */
+/* Remove button */
 
 #selected-user-departments .department-member button {
 
@@ -827,7 +841,7 @@ footer {
 
 
 /* ==================================================
-   ADMIN - AJOUT DÉPARTEMENT
+   ADMIN - ADD DEPARTMENT
    ================================================== */
 
 #admin .department-add-row {
@@ -858,7 +872,7 @@ footer {
 
 
 /* ==================================================
-   ADMIN - BOUTON FERMER
+   ADMIN - CLOSE EDITOR
    ================================================== */
 
 #admin .admin-close-editor {
@@ -876,7 +890,7 @@ footer {
 
 
 /* ==================================================
-   ADMIN - SCROLLBAR PRINCIPALE
+   ADMIN - MAIN SCROLLBAR
    ================================================== */
 
 #admin > .window-content::-webkit-scrollbar {
@@ -901,7 +915,7 @@ footer {
 
 
 /* ==================================================
-   ADMIN - SCROLLBAR LISTE
+   ADMIN - LIST SCROLLBARS
    ================================================== */
 
 #admin #user-list::-webkit-scrollbar,
@@ -926,7 +940,7 @@ footer {
 
 
 /* ==================================================
-   PETITS ÉCRANS
+   SMALL SCREENS
    ================================================== */
 
 @media (max-height: 700px) {
@@ -948,6 +962,20 @@ footer {
 
         padding: 15px !important;
     }
+
+
+    /*
+       Liste légèrement réduite sur les petits écrans
+    */
+
+    #admin #user-list {
+
+        height: 45vh;
+
+        max-height: 45vh;
+
+    }
+
 }
 
 
@@ -1002,84 +1030,110 @@ footer {
     }
 }
 
+
 /* ==================================================
    DOCUMENTS — SCROLL
    ================================================== */
 
 #documents {
+
     max-height: 85vh !important;
+
     overflow: hidden !important;
 }
 
 
-/* Zone de contenu scrollable */
+/* Scrollable content */
 
 #documents > .window-content {
+
     height: calc(85vh - 45px) !important;
+
     max-height: calc(85vh - 45px) !important;
 
     overflow-y: auto !important;
+
     overflow-x: hidden !important;
 
     box-sizing: border-box;
+
     padding-bottom: 30px;
 }
 
 
-/* Espacement des sections */
+/* Section spacing */
 
 #documents .document-access-section {
+
     margin-top: 15px;
+
     margin-bottom: 15px;
 }
 
 
-/* Texte explicatif */
+/* Information text */
 
 #documents .document-access-info {
+
     font-size: 12px;
+
     opacity: 0.75;
+
     margin: 8px 0;
 }
 
 
-/* Liste des accès départementaux */
+/* Department access list */
 
 #documents #document-department-list {
+
     margin: 10px 0;
+
     padding: 8px;
+
     border: 1px solid #39444c;
+
     background: #0c1114;
 }
 
 
-/* Aperçu de la règle */
+/* Access rule preview */
 
 #documents .document-access-preview {
+
     margin-top: 15px;
+
     margin-bottom: 15px;
+
     padding: 10px;
 
     border: 1px solid #39444c;
+
     background: #0c1114;
 }
 
 
-/* Ligne d'ajout département */
+/* Department add row */
 
 #documents .department-add-row {
+
     display: flex;
+
     gap: 8px;
+
     align-items: center;
+
     flex-wrap: wrap;
 }
 
 
-/* Empêche les champs de dépasser */
+/* Prevent fields from overflowing */
 
 #documents input,
 #documents select,
 #documents button {
+
     max-width: 100%;
+
     box-sizing: border-box;
 }
