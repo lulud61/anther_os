@@ -1144,3 +1144,194 @@ footer {
     background-size: 420px;
     background-color: #050505;
 }
+
+/* ==================================================
+   ANTHER OS - WELCOME SCREEN
+   ================================================== */
+
+#welcome-screen {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 99999;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #101820 0%,
+            #050708 50%,
+            #020303 100%
+        );
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    color: #d8e0e5;
+}
+
+
+#welcome-screen.hidden {
+
+    display: none;
+}
+
+
+.welcome-container {
+
+    width: 500px;
+
+    text-align: center;
+}
+
+
+.welcome-logo {
+
+    font-size: 28px;
+
+    font-weight: bold;
+
+    letter-spacing: 6px;
+
+    color: #ffffff;
+
+    margin-bottom: 30px;
+}
+
+
+.welcome-status {
+
+    font-size: 13px;
+
+    letter-spacing: 3px;
+
+    color: #8fa8b5;
+
+    margin-bottom: 35px;
+}
+
+
+.welcome-message {
+
+    font-size: 12px;
+
+    letter-spacing: 2px;
+
+    margin-bottom: 12px;
+}
+
+
+.welcome-progress {
+
+    width: 420px;
+
+    height: 8px;
+
+    margin: 0 auto;
+
+    border: 1px solid #39464c;
+
+    background: #080b0d;
+
+    overflow: hidden;
+}
+
+
+#welcome-progress-bar {
+
+    width: 0%;
+
+    height: 100%;
+
+    background: #c4d0d6;
+
+    transition:
+        width 0.12s linear;
+}
+
+
+.welcome-percentage {
+
+    margin-top: 8px;
+
+    font-size: 11px;
+
+    color: #7f9099;
+}
+
+
+.welcome-user {
+
+    margin-top: 35px;
+
+    font-size: 12px;
+
+    line-height: 2;
+
+    letter-spacing: 3px;
+
+    color: #cbd5da;
+}
+
+
+/* ==================================================
+   ANIMATION
+   ================================================== */
+
+.welcome-fade-in {
+
+    animation:
+        welcomeFadeIn
+        0.5s
+        ease-out;
+}
+
+
+.welcome-fade-out {
+
+    animation:
+        welcomeFadeOut
+        0.7s
+        ease-in
+        forwards;
+}
+
+
+@keyframes welcomeFadeIn {
+
+    from {
+
+        opacity: 0;
+
+    }
+
+    to {
+
+        opacity: 1;
+
+    }
+}
+
+
+@keyframes welcomeFadeOut {
+
+    from {
+
+        opacity: 1;
+
+    }
+
+    to {
+
+        opacity: 0;
+
+    }
+}

@@ -290,6 +290,230 @@ async function register() {
 
 
 // ==================================================
+// ANIMATION DE BIENVENUE
+// ==================================================
+
+function playWelcomeAnimation() {
+
+    return new Promise(function(resolve) {
+
+        const welcomeScreen =
+            document.getElementById(
+                "welcome-screen"
+            );
+
+        const progressBar =
+            document.getElementById(
+                "welcome-progress-bar"
+            );
+
+        const percentage =
+            document.getElementById(
+                "welcome-percentage"
+            );
+
+        const message =
+            document.getElementById(
+                "welcome-message"
+            );
+
+        const user =
+            document.getElementById(
+                "welcome-user"
+            );
+
+
+        // Vérification de sécurité
+
+        if (!welcomeScreen) {
+
+            console.error(
+                "WELCOME SCREEN INTROUVABLE DANS LE HTML"
+            );
+
+            resolve();
+
+            return;
+        }
+
+
+        // ------------------------------------------
+        // Informations utilisateur
+        // ------------------------------------------
+
+        if (user && currentProfile) {
+
+            user.innerHTML =
+                "WELCOME, " +
+                escapeHTML(
+                    currentProfile.name
+                ) +
+                "<br>" +
+                "CLEARANCE LEVEL : ACC-" +
+                currentProfile.clearance;
+        }
+
+
+        // ------------------------------------------
+        // Réinitialisation
+        // ------------------------------------------
+
+        if (progressBar) {
+
+            progressBar.style.width =
+                "0%";
+        }
+
+
+        if (percentage) {
+
+            percentage.textContent =
+                "0%";
+        }
+
+
+        if (message) {
+
+            message.textContent =
+                "INITIALIZING ANTHER OS...";
+        }
+
+
+        welcomeScreen.classList.remove(
+            "hidden"
+        );
+
+
+        welcomeScreen.classList.remove(
+            "welcome-fade-out"
+        );
+
+
+        welcomeScreen.classList.add(
+            "welcome-fade-in"
+        );
+
+
+        // ------------------------------------------
+        // Progression
+        // ------------------------------------------
+
+        let progress = 0;
+
+
+        const interval =
+            setInterval(function() {
+
+                progress +=
+                    Math.floor(
+                        Math.random() * 3
+                    ) + 1;
+
+
+                if (progress >= 100) {
+
+                    progress = 100;
+                }
+
+
+                if (progressBar) {
+
+                    progressBar.style.width =
+                        progress + "%";
+                }
+
+
+                if (percentage) {
+
+                    percentage.textContent =
+                        progress + "%";
+                }
+
+
+                // ----------------------------------
+                // Messages système
+                // ----------------------------------
+
+                if (message) {
+
+                    if (progress < 25) {
+
+                        message.textContent =
+                            "INITIALIZING ANTHER OS...";
+
+                    } else if (progress < 50) {
+
+                        message.textContent =
+                            "LOADING CORPORATE NETWORK...";
+
+                    } else if (progress < 75) {
+
+                        message.textContent =
+                            "CONNECTING TO CRX-NET...";
+
+                    } else if (progress < 100) {
+
+                        message.textContent =
+                            "VERIFYING CORPORATE SYSTEMS...";
+
+                    } else {
+
+                        message.textContent =
+                            "CONNECTION ESTABLISHED";
+                    }
+                }
+
+
+                // ----------------------------------
+                // Fin de l'animation
+                // ----------------------------------
+
+                if (progress >= 100) {
+
+                    clearInterval(
+                        interval
+                    );
+
+
+                    setTimeout(
+                        function() {
+
+                            welcomeScreen.classList.remove(
+                                "welcome-fade-in"
+                            );
+
+
+                            welcomeScreen.classList.add(
+                                "welcome-fade-out"
+                            );
+
+
+                            setTimeout(
+                                function() {
+
+                                    welcomeScreen.classList.add(
+                                        "hidden"
+                                    );
+
+
+                                    resolve();
+
+                                },
+                                700
+                            );
+
+                        },
+                        1500
+                    );
+                }
+
+            }, 100);
+
+    });
+}
+
+
+// ==================================================
 // CONNEXION
 // ==================================================
 
@@ -405,18 +629,38 @@ async function login() {
         await loadCurrentUserDepartments();
 
 
+        // ==================================================
+        // PRÉPARER L'INTERFACE
+        // ==================================================
+
         document
             .getElementById("login-screen")
-            .classList.add("hidden");
+            .classList
+            .add("hidden");
+
 
         document
             .getElementById("register-screen")
-            .classList.add("hidden");
+            .classList
+            .add("hidden");
+
 
         document
             .getElementById("os")
-            .classList.remove("hidden");
+            .classList
+            .remove("hidden");
 
+
+        // ==================================================
+        // ANIMATION DE BIENVENUE
+        // ==================================================
+
+        await playWelcomeAnimation();
+
+
+        // ==================================================
+        // INFORMATIONS UTILISATEUR
+        // ==================================================
 
         document
             .getElementById("current-user")
@@ -2064,10 +2308,6 @@ async function loadDocuments() {
     }
 
 
-    // --------------------------------------------------
-    // Documents
-    // --------------------------------------------------
-
     const {
         data: documents,
         error: documentError
@@ -2101,10 +2341,6 @@ async function loadDocuments() {
     const loadedDocuments =
         documents || [];
 
-
-    // --------------------------------------------------
-    // Charger les règles départementales
-    // --------------------------------------------------
 
     let documentRules = [];
 
@@ -2156,10 +2392,6 @@ async function loadDocuments() {
     }
 
 
-    // --------------------------------------------------
-    // Ajouter les règles aux documents
-    // --------------------------------------------------
-
     adminDocuments =
         loadedDocuments.map(
             function(doc) {
@@ -2201,10 +2433,6 @@ function canCurrentUserViewDocument(
     }
 
 
-    // --------------------------------------------------
-    // ADMIN SYSTEM
-    // --------------------------------------------------
-
     if (
         currentProfile.system_role ===
         "admin"
@@ -2213,10 +2441,6 @@ function canCurrentUserViewDocument(
         return true;
     }
 
-
-    // --------------------------------------------------
-    // CORPORATE / RH
-    // --------------------------------------------------
 
     const isSpecialDepartment =
         currentUserDepartments.some(
@@ -2249,10 +2473,6 @@ function canCurrentUserViewDocument(
     }
 
 
-    // --------------------------------------------------
-    // ACC GLOBAL
-    // --------------------------------------------------
-
     const minimumClearance =
         Number(
             doc.minimum_clearance ||
@@ -2269,10 +2489,6 @@ function canCurrentUserViewDocument(
         return true;
     }
 
-
-    // --------------------------------------------------
-    // DEPARTEMENTS
-    // --------------------------------------------------
 
     const rules =
         doc.department_rules || [];
@@ -2324,7 +2540,6 @@ function getDocumentAccessText(doc) {
     const accessParts = [];
 
 
-    // ACC
     accessParts.push(
         "ACC-" +
         (
@@ -2334,7 +2549,6 @@ function getDocumentAccessText(doc) {
     );
 
 
-    // Départements
     const rules =
         doc.department_rules || [];
 
@@ -2382,10 +2596,6 @@ function renderDocuments(
 
     documentList.innerHTML = "";
 
-
-    // --------------------------------------------------
-    // Filtrage des documents
-    // --------------------------------------------------
 
     const accessibleDocuments =
         documents.filter(
@@ -2593,7 +2803,6 @@ function setupDocumentDepartmentUI() {
     }
 
 
-    // Si déjà créée
     if (
         document.getElementById(
             "document-department-access"
@@ -2706,10 +2915,6 @@ function setupDocumentDepartmentUI() {
         </div>
     `;
 
-
-    // --------------------------------------------------
-    // Insérer après la clearance
-    // --------------------------------------------------
 
     if (
         clearanceInput.parentElement
@@ -3080,8 +3285,6 @@ async function addDocument() {
     }
 
 
-    // S'assurer que l'interface
-    // des départements existe
     await prepareDocumentDepartments();
 
 
@@ -3169,10 +3372,6 @@ async function addDocument() {
     }
 
 
-    // --------------------------------------------------
-    // Vérifier les ranks départementaux
-    // --------------------------------------------------
-
     if (
         currentProfile.system_role !==
         "admin"
@@ -3241,10 +3440,6 @@ async function addDocument() {
     }
 
 
-    // --------------------------------------------------
-    // Créer document
-    // --------------------------------------------------
-
     const {
         data: documentData,
         error
@@ -3277,30 +3472,25 @@ async function addDocument() {
             error
         );
 
-
         console.error(
             "MESSAGE:",
             error.message
         );
-
 
         console.error(
             "DETAILS:",
             error.details
         );
 
-
         console.error(
             "HINT:",
             error.hint
         );
 
-
         console.error(
             "CODE:",
             error.code
         );
-
 
         alert(
             "ERREUR SUPABASE :\n\n" +
@@ -3311,10 +3501,6 @@ async function addDocument() {
         return;
     }
 
-
-    // --------------------------------------------------
-    // Ajouter les départements
-    // --------------------------------------------------
 
     if (
         selectedDocumentDepartments.length >
@@ -3361,7 +3547,6 @@ async function addDocument() {
             );
 
 
-            // Nettoyage du document
             await supabaseClient
                 .from("documents")
                 .delete()
@@ -3380,10 +3565,6 @@ async function addDocument() {
         }
     }
 
-
-    // --------------------------------------------------
-    // Reset
-    // --------------------------------------------------
 
     nameInput.value = "";
     urlInput.value = "";
@@ -3526,6 +3707,7 @@ async function checkSession() {
     updatePermissions();
 }
 
+
 // ==================================================
 // DRAG & DROP WINDOWS
 // ==================================================
@@ -3538,7 +3720,6 @@ function makeWindowsDraggable() {
 
     windows.forEach(function(windowElement) {
 
-        // Évite de préparer deux fois la fenêtre
         if (
             windowElement.dataset.draggable === "true"
         ) {
@@ -3552,13 +3733,12 @@ function makeWindowsDraggable() {
             );
 
 
-        // La fenêtre ADMIN n'utilise pas .window-header
         const dragArea = header;
+
 
         if (!dragArea) {
             return;
         }
-
 
 
         windowElement.dataset.draggable =
@@ -3571,15 +3751,10 @@ function makeWindowsDraggable() {
         let offsetY = 0;
 
 
-        // ==========================================
-        // CLIQUE SUR LA BARRE DE TITRE
-        // ==========================================
-
         dragArea.addEventListener(
             "mousedown",
             function(event) {
 
-                // Seulement clic gauche
                 if (event.button !== 0) {
                     return;
                 }
@@ -3602,14 +3777,13 @@ function makeWindowsDraggable() {
                     rect.top;
 
 
-                // Mettre cette fenêtre au premier plan
-
                 document
                     .querySelectorAll(".window")
                     .forEach(
                         function(win) {
 
-                            win.style.zIndex = "10";
+                            win.style.zIndex =
+                                "10";
 
                         }
                     );
@@ -3618,8 +3792,6 @@ function makeWindowsDraggable() {
                 windowElement.style.zIndex =
                     "100";
 
-
-                // Empêcher la sélection de texte
 
                 document.body.style.userSelect =
                     "none";
@@ -3630,10 +3802,6 @@ function makeWindowsDraggable() {
             }
         );
 
-
-        // ==========================================
-        // DÉPLACEMENT
-        // ==========================================
 
         document.addEventListener(
             "mousemove",
@@ -3653,8 +3821,6 @@ function makeWindowsDraggable() {
                     event.clientY -
                     offsetY;
 
-
-                // Limites de l'écran
 
                 const maxX =
                     window.innerWidth -
@@ -3705,10 +3871,6 @@ function makeWindowsDraggable() {
         );
 
 
-        // ==========================================
-        // FIN DU DÉPLACEMENT
-        // ==========================================
-
         document.addEventListener(
             "mouseup",
             function() {
@@ -3737,15 +3899,6 @@ function makeWindowsDraggable() {
 // ==================================================
 
 makeWindowsDraggable();
-
-
-
-
-
-
-
-
-
 
 
 // ==================================================
