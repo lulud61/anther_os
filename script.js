@@ -909,18 +909,25 @@ async function loadAuditLogs() {
 
         if (access.all) {
 
-            console.log(
-                "AUDIT : ACCÈS TOTAL -",
-                auditLogs.length,
-                "LOGS"
-            );
+        // Même avec un accès total,
+        // on enrichit les logs pour récupérer
+        // les noms des acteurs et des utilisateurs cibles.
 
-            renderAuditLogs(
-                auditLogs
-            );
+        await enrichAuditLogs();
 
-            return;
+        console.log(
+            "AUDIT : ACCÈS TOTAL -",
+            auditLogs.length,
+            "LOGS"
+        );
+
+        renderAuditLogs(
+            auditLogs
+        );
+
+        return;
         }
+
 
 
         // ==========================================
