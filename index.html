@@ -816,20 +816,23 @@
             class="window hidden"
         >
 
-            <div class="window-header">
+        <div
+        class="window-header"
+        onmousedown="startDrag(event, 'admin')"
+        >
 
-                <span>
-                    ANTHER ADMINISTRATION
-                </span>
+        <span>
+            ANTHER ADMINISTRATION
+        </span>
 
+        <button
+            onclick="closeWindow('admin')"
+            onmousedown="event.stopPropagation()"
+        >
+            ✕
+        </button>
 
-                <button
-                    onclick="closeWindow('admin')"
-                >
-                    ✕
-                </button>
-
-            </div>
+        </div>
 
 
             <div class="window-content admin-panel">

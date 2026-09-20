@@ -3526,6 +3526,227 @@ async function checkSession() {
     updatePermissions();
 }
 
+// ==================================================
+// DRAG & DROP WINDOWS
+// ==================================================
+
+function makeWindowsDraggable() {
+
+    const windows =
+        document.querySelectorAll(".window");
+
+
+    windows.forEach(function(windowElement) {
+
+        // Évite de préparer deux fois la fenêtre
+        if (
+            windowElement.dataset.draggable === "true"
+        ) {
+            return;
+        }
+
+
+        const header =
+            windowElement.querySelector(
+                ".window-header"
+            );
+
+
+        // La fenêtre ADMIN n'utilise pas .window-header
+        const dragArea = header;
+
+        if (!dragArea) {
+            return;
+        }
+
+
+
+        windowElement.dataset.draggable =
+            "true";
+
+
+        let isDragging = false;
+
+        let offsetX = 0;
+        let offsetY = 0;
+
+
+        // ==========================================
+        // CLIQUE SUR LA BARRE DE TITRE
+        // ==========================================
+
+        dragArea.addEventListener(
+            "mousedown",
+            function(event) {
+
+                // Seulement clic gauche
+                if (event.button !== 0) {
+                    return;
+                }
+
+
+                isDragging = true;
+
+
+                const rect =
+                    windowElement.getBoundingClientRect();
+
+
+                offsetX =
+                    event.clientX -
+                    rect.left;
+
+
+                offsetY =
+                    event.clientY -
+                    rect.top;
+
+
+                // Mettre cette fenêtre au premier plan
+
+                document
+                    .querySelectorAll(".window")
+                    .forEach(
+                        function(win) {
+
+                            win.style.zIndex = "10";
+
+                        }
+                    );
+
+
+                windowElement.style.zIndex =
+                    "100";
+
+
+                // Empêcher la sélection de texte
+
+                document.body.style.userSelect =
+                    "none";
+
+
+                event.preventDefault();
+
+            }
+        );
+
+
+        // ==========================================
+        // DÉPLACEMENT
+        // ==========================================
+
+        document.addEventListener(
+            "mousemove",
+            function(event) {
+
+                if (!isDragging) {
+                    return;
+                }
+
+
+                let newX =
+                    event.clientX -
+                    offsetX;
+
+
+                let newY =
+                    event.clientY -
+                    offsetY;
+
+
+                // Limites de l'écran
+
+                const maxX =
+                    window.innerWidth -
+                    windowElement.offsetWidth;
+
+
+                const maxY =
+                    window.innerHeight -
+                    windowElement.offsetHeight;
+
+
+                newX =
+                    Math.max(
+                        0,
+                        Math.min(
+                            newX,
+                            maxX
+                        )
+                    );
+
+
+                newY =
+                    Math.max(
+                        0,
+                        Math.min(
+                            newY,
+                            maxY
+                        )
+                    );
+
+
+                windowElement.style.left =
+                    newX + "px";
+
+
+                windowElement.style.top =
+                    newY + "px";
+
+
+                windowElement.style.right =
+                    "auto";
+
+
+                windowElement.style.transform =
+                    "none";
+
+            }
+        );
+
+
+        // ==========================================
+        // FIN DU DÉPLACEMENT
+        // ==========================================
+
+        document.addEventListener(
+            "mouseup",
+            function() {
+
+                if (!isDragging) {
+                    return;
+                }
+
+
+                isDragging = false;
+
+
+                document.body.style.userSelect =
+                    "";
+
+            }
+        );
+
+    });
+
+}
+
+
+// ==================================================
+// INITIALISER LE DRAG
+// ==================================================
+
+makeWindowsDraggable();
+
+
+
+
+
+
+
+
+
+
 
 // ==================================================
 // INITIALISATION

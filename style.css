@@ -1137,3 +1137,10 @@ footer {
 
     box-sizing: border-box;
 }
+#desktop {
+    background-image: url("anther_logo.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 420px;
+    background-color: #050505;
+}
