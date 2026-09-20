@@ -21,6 +21,7 @@
 
 
 <body>
+
 <!-- ==================================================
      ANTHER OS - ÉCRAN DE BIENVENUE
      ================================================== -->
@@ -65,6 +66,7 @@
     </div>
 
 </div>
+
 
 <!-- ==================================================
      LOGIN SCREEN
@@ -368,6 +370,27 @@
             </div>
 
 
+            <!-- ==================================================
+                 AUDIT LOGS
+                 ================================================== -->
+
+            <div
+                id="logs-icon"
+                class="app-icon hidden"
+                onclick="openWindow('logs')"
+            >
+
+                <div class="icon">
+                    ▤
+                </div>
+
+                <span>
+                    AUDIT LOGS
+                </span>
+
+            </div>
+
+
         </div>
 
 
@@ -545,8 +568,6 @@
                 </h3>
 
 
-                <!-- DOCUMENT NAME -->
-
                 <label>
                     DOCUMENT NAME
                 </label>
@@ -558,8 +579,6 @@
                     autocomplete="off"
                 >
 
-
-                <!-- GOOGLE DOCS LINK -->
 
                 <label>
                     GOOGLE DOCS LINK
@@ -631,8 +650,6 @@
                     </p>
 
 
-                    <!-- SELECTED DEPARTMENTS -->
-
                     <div
                         id="document-department-list"
                         class="document-department-list"
@@ -645,16 +662,11 @@
                     </div>
 
 
-                    <!-- ADD DEPARTMENT -->
-
                     <div class="department-add-row">
 
                         <select
                             id="document-department-select"
                         >
-
-                            <!-- Filled automatically by JavaScript -->
-
                         </select>
 
 
@@ -859,23 +871,23 @@
             class="window hidden"
         >
 
-        <div
-        class="window-header"
-        onmousedown="startDrag(event, 'admin')"
-        >
+            <div
+                class="window-header"
+                onmousedown="startDrag(event, 'admin')"
+            >
 
-        <span>
-            ANTHER ADMINISTRATION
-        </span>
+                <span>
+                    ANTHER ADMINISTRATION
+                </span>
 
-        <button
-            onclick="closeWindow('admin')"
-            onmousedown="event.stopPropagation()"
-        >
-            ✕
-        </button>
+                <button
+                    onclick="closeWindow('admin')"
+                    onmousedown="event.stopPropagation()"
+                >
+                    ✕
+                </button>
 
-        </div>
+            </div>
 
 
             <div class="window-content admin-panel">
@@ -935,15 +947,10 @@
 
 
                     <div id="selected-user-info">
-
-                        <!-- Filled by JavaScript -->
-
                     </div>
 
 
-                    <!-- ======================================
-                         CLEARANCE
-                         ====================================== -->
+                    <!-- CLEARANCE -->
 
                     <div class="admin-control">
 
@@ -982,9 +989,7 @@
                     </div>
 
 
-                    <!-- ======================================
-                         SYSTEM ROLE
-                         ====================================== -->
+                    <!-- SYSTEM ROLE -->
 
                     <div class="admin-control">
 
@@ -1011,9 +1016,7 @@
                     </div>
 
 
-                    <!-- ======================================
-                         DEPARTMENTS
-                         ====================================== -->
+                    <!-- DEPARTMENTS -->
 
                     <div class="admin-control">
 
@@ -1023,17 +1026,12 @@
 
 
                         <div id="selected-user-departments">
-
-                            <!-- Filled by JavaScript -->
-
                         </div>
 
                     </div>
 
 
-                    <!-- ======================================
-                         ADD DEPARTMENT
-                         ====================================== -->
+                    <!-- ADD DEPARTMENT -->
 
                     <div class="admin-control">
 
@@ -1048,7 +1046,6 @@
                             <select
                                 id="add-department-select"
                             >
-
                             </select>
 
 
@@ -1091,10 +1088,6 @@
                     </div>
 
 
-                    <!-- ======================================
-                         CLOSE EDITOR
-                         ====================================== -->
-
                     <button
                         class="admin-close-editor"
                         onclick="closeUserEditor()"
@@ -1104,6 +1097,94 @@
 
 
                 </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+             AUDIT LOGS WINDOW
+             ================================================== -->
+
+        <div
+            id="logs"
+            class="window hidden"
+        >
+
+            <div class="window-header">
+
+                <span>
+                    ANTHER AUDIT LOGS
+                </span>
+
+
+                <button
+                    onclick="closeWindow('logs')"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+
+            <div class="window-content">
+
+
+                <h2>
+                    SYSTEM AUDIT LOG
+                </h2>
+
+
+                <p>
+                    HISTORICAL USER ACTIVITY
+                </p>
+
+
+                <hr>
+
+
+                <!-- ================= SEARCH ================= -->
+
+                <input
+                    type="text"
+                    id="audit-search"
+                    placeholder="SEARCH LOGS..."
+                    autocomplete="off"
+                    oninput="filterAuditLogs()"
+                >
+
+
+                <!-- ================= CONTROLS ================= -->
+
+                <div
+                    style="
+                        display:flex;
+                        gap:8px;
+                        margin-top:10px;
+                        margin-bottom:15px;
+                    "
+                >
+
+                    <button
+                        onclick="loadAuditLogs()"
+                    >
+                        ↻ REFRESH
+                    </button>
+
+                </div>
+
+
+                <!-- ================= LOG LIST ================= -->
+
+                <div id="audit-log-list">
+
+                    <p>
+                        LOADING AUDIT LOGS...
+                    </p>
+
+                </div>
+
 
             </div>
 

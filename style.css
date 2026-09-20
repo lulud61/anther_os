@@ -1335,3 +1335,13 @@ footer {
 
     }
 }
+/* ==================================================
+   AUDIT LOGS - ZONE SCROLLABLE
+   ================================================== */
+
+#audit-log-list {
+    max-height: 450px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+}

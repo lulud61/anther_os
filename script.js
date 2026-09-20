@@ -4,6 +4,7 @@
 
 console.log("ANTHER OS : script.js chargé");
 
+
 // ==================================================
 // SUPABASE
 // ==================================================
@@ -46,6 +47,13 @@ let selectedAdminUserDepartments = [];
 let selectedDocumentDepartments = [];
 
 let currentUserDepartments = [];
+
+
+// ==================================================
+// AUDIT LOGS
+// ==================================================
+
+let auditLogs = [];
 
 
 // ==================================================
@@ -323,8 +331,6 @@ function playWelcomeAnimation() {
             );
 
 
-        // Vérification de sécurité
-
         if (!welcomeScreen) {
 
             console.error(
@@ -336,10 +342,6 @@ function playWelcomeAnimation() {
             return;
         }
 
-
-        // ------------------------------------------
-        // Informations utilisateur
-        // ------------------------------------------
 
         if (user && currentProfile) {
 
@@ -353,10 +355,6 @@ function playWelcomeAnimation() {
                 currentProfile.clearance;
         }
 
-
-        // ------------------------------------------
-        // Réinitialisation
-        // ------------------------------------------
 
         if (progressBar) {
 
@@ -394,10 +392,6 @@ function playWelcomeAnimation() {
         );
 
 
-        // ------------------------------------------
-        // Progression
-        // ------------------------------------------
-
         let progress = 0;
 
 
@@ -430,10 +424,6 @@ function playWelcomeAnimation() {
                 }
 
 
-                // ----------------------------------
-                // Messages système
-                // ----------------------------------
-
                 if (message) {
 
                     if (progress < 25) {
@@ -463,10 +453,6 @@ function playWelcomeAnimation() {
                     }
                 }
 
-
-                // ----------------------------------
-                // Fin de l'animation
-                // ----------------------------------
 
                 if (progress >= 100) {
 
@@ -510,6 +496,1340 @@ function playWelcomeAnimation() {
             }, 100);
 
     });
+}
+
+
+// ==================================================
+// SYSTÈME DE LOGS
+// ==================================================
+//
+// STRUCTURE SUPABASE :
+//
+// audit_logs
+//
+// id              bigint
+// actor_id        bigint
+// action          text
+// target_user_id  bigint
+// document_id     bigint
+// department_id   bigint
+// old_value       text
+// new_value       text
+// details         text
+// created_at      timestamptz
+//
+// actor_id correspond à users.id
+// et NON à auth.users.id.
+//
+// ==================================================
+
+async function createAuditLog(
+    action,
+    targetType,
+    targetId,
+    details
+) {
+
+    if (!currentProfile) {
+
+        console.warn(
+            "AUDIT LOG : aucun profil connecté"
+        );
+
+        return;
+    }
+
+
+    try {
+
+        const logData = {
+
+            actor_id:
+                currentProfile.id,
+
+            action:
+                action,
+
+            target_user_id:
+                null,
+
+            document_id:
+                null,
+
+            department_id:
+                null,
+
+            old_value:
+                details &&
+                details.old_value !== undefined
+                    ? String(
+                        details.old_value
+                    )
+                    : (
+                        details &&
+                        details.old_clearance !== undefined
+                            ? String(
+                                details.old_clearance
+                            )
+                            : (
+                                details &&
+                                details.old_rank !== undefined
+                                    ? String(
+                                        details.old_rank
+                                    )
+                                    : (
+                                        details &&
+                                        details.old_role !== undefined
+                                            ? String(
+                                                details.old_role
+                                            )
+                                            : null
+                                    )
+                            )
+                    ),
+
+            new_value:
+                details &&
+                details.new_value !== undefined
+                    ? String(
+                        details.new_value
+                    )
+                    : (
+                        details &&
+                        details.new_clearance !== undefined
+                            ? String(
+                                details.new_clearance
+                            )
+                            : (
+                                details &&
+                                details.new_rank !== undefined
+                                    ? String(
+                                        details.new_rank
+                                    )
+                                    : (
+                                        details &&
+                                        details.new_role !== undefined
+                                            ? String(
+                                                details.new_role
+                                            )
+                                            : null
+                                    )
+                            )
+                    ),
+
+            details:
+                details
+                    ? JSON.stringify(details)
+                    : null
+        };
+
+
+        // ==========================================
+        // CIBLE UTILISATEUR
+        // ==========================================
+
+        if (
+            targetType === "USER" &&
+            targetId !== null &&
+            targetId !== undefined
+        ) {
+
+            logData.target_user_id =
+                Number(targetId);
+        }
+
+
+        // ==========================================
+        // CIBLE DOCUMENT
+        // ==========================================
+
+        if (
+            targetType === "DOCUMENT" &&
+            targetId !== null &&
+            targetId !== undefined
+        ) {
+
+            logData.document_id =
+                Number(targetId);
+        }
+
+
+        // ==========================================
+        // DÉPARTEMENT
+        // ==========================================
+
+        if (
+            details &&
+            details.department_id !== undefined &&
+            details.department_id !== null
+        ) {
+
+            logData.department_id =
+                Number(
+                    details.department_id
+                );
+        }
+
+
+        console.log(
+            "AUDIT LOG INSERT :",
+            logData
+        );
+
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("audit_logs")
+                .insert(logData)
+                .select()
+                .single();
+
+
+        if (error) {
+
+            console.error(
+                "AUDIT LOG ERROR :",
+                error
+            );
+
+            return;
+        }
+
+
+        console.log(
+            "AUDIT LOG CREATED :",
+            data
+        );
+
+    } catch (error) {
+
+        console.error(
+            "AUDIT LOG SYSTEM ERROR :",
+            error
+        );
+    }
+}
+
+
+// ==================================================
+// ACCÈS AUX AUDIT LOGS
+// ==================================================
+
+
+
+// ==================================================
+// DÉPARTEMENTS ASSOCIÉS À UN LOG
+// ==================================================
+
+function getLogDepartmentIds(log) {
+
+    const ids = [];
+
+    // ==========================================
+    // 1. DEPARTEMENT DIRECT DU LOG
+    // ==========================================
+
+    if (
+        log.department_id !== null &&
+        log.department_id !== undefined
+    ) {
+
+        const departmentId =
+            Number(log.department_id);
+
+        if (
+            Number.isFinite(departmentId)
+        ) {
+            ids.push(departmentId);
+        }
+    }
+
+
+    // ==========================================
+    // 2. DEPARTEMENTS DU DOCUMENT
+    // ==========================================
+
+    if (
+        Array.isArray(
+            log.document_department_ids
+        )
+    ) {
+
+        log.document_department_ids.forEach(
+            function(departmentId) {
+
+                departmentId =
+                    Number(departmentId);
+
+                if (
+                    Number.isFinite(departmentId)
+                ) {
+
+                    ids.push(
+                        departmentId
+                    );
+                }
+            }
+        );
+    }
+
+
+    // ==========================================
+    // 3. DEPARTEMENTS DE L'UTILISATEUR CIBLE
+    // ==========================================
+
+    if (
+        Array.isArray(
+            log.target_user_department_ids
+        )
+    ) {
+
+        log.target_user_department_ids.forEach(
+            function(departmentId) {
+
+                departmentId =
+                    Number(departmentId);
+
+                if (
+                    Number.isFinite(departmentId)
+                ) {
+
+                    ids.push(
+                        departmentId
+                    );
+                }
+            }
+        );
+    }
+
+
+    // ==========================================
+    // SUPPRIMER LES DOUBLONS
+    // ==========================================
+
+    return [
+        ...new Set(ids)
+    ];
+}
+
+
+
+// ==================================================
+// CHARGER LES LOGS
+// ==================================================
+
+async function loadAuditLogs() {
+
+    const logList =
+        document.getElementById(
+            "audit-log-list"
+        );
+
+    if (!logList) {
+        return;
+    }
+
+    logList.innerHTML =
+        "<p>LOADING AUDIT LOGS...</p>";
+
+    try {
+
+        // ==========================================
+        // PERMISSIONS
+        // ==========================================
+
+        const access =
+            await getAuditLogAccess();
+
+        console.log(
+            "AUDIT ACCESS :",
+            access
+        );
+
+        if (!access.access) {
+
+            logList.innerHTML =
+                "<p>ACCESS DENIED</p>";
+
+            return;
+        }
+
+
+        // ==========================================
+        // CHARGER LES LOGS
+        // ==========================================
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("audit_logs")
+                .select("*")
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                )
+                .limit(500);
+
+
+        if (error) {
+
+            console.error(
+                "AUDIT LOG LOAD ERROR:",
+                error
+            );
+
+            logList.innerHTML =
+                "<p>DATABASE ERROR</p>";
+
+            return;
+        }
+
+
+        console.log(
+            "AUDIT LOGS SUPABASE :",
+            data
+        );
+
+
+        auditLogs =
+            data || [];
+
+
+        // ==========================================
+        // ACCÈS TOTAL
+        // ADMIN / ACC-3 / ACC-4
+        // ==========================================
+
+        if (access.all) {
+
+            console.log(
+                "AUDIT : ACCÈS TOTAL -",
+                auditLogs.length,
+                "LOGS"
+            );
+
+            renderAuditLogs(
+                auditLogs
+            );
+
+            return;
+        }
+
+
+        // ==========================================
+        // ENRICHIR POUR LES RANK 4 / 5
+        // ==========================================
+
+        await enrichAuditLogs();
+
+
+        // ==========================================
+        // DÉPARTEMENTS AUTORISÉS
+        // ==========================================
+
+        const allowedDepartments =
+            (access.departments || [])
+                .map(function(id) {
+
+                    return Number(id);
+
+                })
+                .filter(function(id) {
+
+                    return Number.isFinite(id);
+
+                });
+
+
+        console.log(
+            "AUDIT - DÉPARTEMENTS AUTORISÉS :",
+            allowedDepartments
+        );
+
+
+        // ==========================================
+        // FILTRAGE
+        // ==========================================
+
+        auditLogs =
+            auditLogs.filter(
+                function(log) {
+
+                    const logDepartmentIds =
+                        getLogDepartmentIds(
+                            log
+                        );
+
+                    console.log(
+                        "AUDIT - LOG",
+                        log.id,
+                        "DEPARTEMENTS :",
+                        logDepartmentIds
+                    );
+
+                    return logDepartmentIds.some(
+                        function(departmentId) {
+
+                            return allowedDepartments.includes(
+                                Number(
+                                    departmentId
+                                )
+                            );
+
+                        }
+                    );
+                }
+            );
+
+
+        // ==========================================
+        // AFFICHAGE
+        // ==========================================
+
+        renderAuditLogs(
+            auditLogs
+        );
+
+    } catch (error) {
+
+        console.error(
+            "AUDIT LOG SYSTEM ERROR:",
+            error
+        );
+
+        logList.innerHTML =
+            "<p>DATABASE ERROR</p>";
+    }
+}
+
+// ==================================================
+// AJOUTER LES INFORMATIONS UTILISATEURS AUX LOGS
+// ==================================================
+
+// ==================================================
+// AJOUTER LES INFORMATIONS AUX LOGS
+// ==================================================
+
+async function enrichAuditLogs() {
+
+    if (
+        !Array.isArray(auditLogs) ||
+        auditLogs.length === 0
+    ) {
+        return;
+    }
+
+
+    // ==================================================
+    // RÉCUPÉRER LES IDS UTILISATEURS
+    // ==================================================
+
+    const actorIds =
+        [
+            ...new Set(
+                auditLogs
+                    .map(function(log) {
+
+                        return Number(
+                            log.actor_id
+                        );
+
+                    })
+                    .filter(function(id) {
+
+                        return (
+                            Number.isFinite(id) &&
+                            id > 0
+                        );
+
+                    })
+            )
+        ];
+
+
+    const targetUserIds =
+        [
+            ...new Set(
+                auditLogs
+                    .map(function(log) {
+
+                        return Number(
+                            log.target_user_id
+                        );
+
+                    })
+                    .filter(function(id) {
+
+                        return (
+                            Number.isFinite(id) &&
+                            id > 0
+                        );
+
+                    })
+            )
+        ];
+
+
+    const userIds =
+        [
+            ...new Set(
+                [
+                    ...actorIds,
+                    ...targetUserIds
+                ]
+            )
+        ];
+
+
+    // ==================================================
+    // RÉCUPÉRER LES UTILISATEURS
+    // ==================================================
+
+    let users = [];
+
+
+    if (
+        userIds.length > 0
+    ) {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("users")
+                .select(
+                    "id, auth_id, username, name"
+                )
+                .in(
+                    "id",
+                    userIds
+                );
+
+
+        if (error) {
+
+            console.error(
+                "AUDIT USERS LOAD ERROR:",
+                error
+            );
+
+        } else {
+
+            users =
+                data || [];
+        }
+    }
+
+
+    // ==================================================
+    // RÉCUPÉRER LES DÉPARTEMENTS DES UTILISATEURS
+    // ==================================================
+
+    let userDepartments = [];
+
+
+    if (
+        targetUserIds.length > 0
+    ) {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("department_members")
+                .select(
+                    "user_id, department_id, department_rank"
+                )
+                .in(
+                    "user_id",
+                    targetUserIds
+                );
+
+
+        if (error) {
+
+            console.error(
+                "AUDIT USER DEPARTMENTS LOAD ERROR:",
+                error
+            );
+
+        } else {
+
+            userDepartments =
+                data || [];
+        }
+    }
+
+
+    // ==================================================
+    // RÉCUPÉRER LES DÉPARTEMENTS DES DOCUMENTS
+    // ==================================================
+
+    const documentIds =
+        [
+            ...new Set(
+                auditLogs
+                    .map(function(log) {
+
+                        return Number(
+                            log.document_id
+                        );
+
+                    })
+                    .filter(function(id) {
+
+                        return (
+                            Number.isFinite(id) &&
+                            id > 0
+                        );
+
+                    })
+            )
+        ];
+
+
+    let documentDepartments = [];
+
+
+    if (
+        documentIds.length > 0
+    ) {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("document_departments")
+                .select(
+                    "document_id, department_id"
+                )
+                .in(
+                    "document_id",
+                    documentIds
+                );
+
+
+        if (error) {
+
+            console.error(
+                "AUDIT DOCUMENT DEPARTMENTS LOAD ERROR:",
+                error
+            );
+
+        } else {
+
+            documentDepartments =
+                data || [];
+        }
+    }
+
+
+    // ==================================================
+    // ENRICHIR CHAQUE LOG
+    // ==================================================
+
+    auditLogs =
+        auditLogs.map(
+            function(log) {
+
+
+                // ==========================================
+                // ACTEUR
+                // ==========================================
+
+                const actor =
+                    users.find(
+                        function(user) {
+
+                            return (
+                                Number(
+                                    user.id
+                                ) ===
+                                Number(
+                                    log.actor_id
+                                )
+                            );
+
+                        }
+                    );
+
+
+                // ==========================================
+                // UTILISATEUR CIBLE
+                // ==========================================
+
+                const targetUser =
+                    users.find(
+                        function(user) {
+
+                            return (
+                                Number(
+                                    user.id
+                                ) ===
+                                Number(
+                                    log.target_user_id
+                                )
+                            );
+
+                        }
+                    );
+
+
+                // ==========================================
+                // DÉPARTEMENTS DE L'UTILISATEUR CIBLE
+                // ==========================================
+
+                const targetUserDepartmentIds =
+                    userDepartments
+                        .filter(
+                            function(member) {
+
+                                return (
+                                    Number(
+                                        member.user_id
+                                    ) ===
+                                    Number(
+                                        log.target_user_id
+                                    )
+                                );
+
+                            }
+                        )
+                        .map(
+                            function(member) {
+
+                                return Number(
+                                    member.department_id
+                                );
+
+                            }
+                        )
+                        .filter(
+                            function(id) {
+
+                                return Number.isFinite(
+                                    id
+                                );
+
+                            }
+                        );
+
+
+                // ==========================================
+                // DÉPARTEMENTS DU DOCUMENT
+                // ==========================================
+
+                const documentDepartmentIds =
+                    documentDepartments
+                        .filter(
+                            function(rule) {
+
+                                return (
+                                    Number(
+                                        rule.document_id
+                                    ) ===
+                                    Number(
+                                        log.document_id
+                                    )
+                                );
+
+                            }
+                        )
+                        .map(
+                            function(rule) {
+
+                                return Number(
+                                    rule.department_id
+                                );
+
+                            }
+                        )
+                        .filter(
+                            function(id) {
+
+                                return Number.isFinite(
+                                    id
+                                );
+
+                            }
+                        );
+
+
+                return {
+
+                    ...log,
+
+                    // ------------------------------
+                    // ACTEUR
+                    // ------------------------------
+
+                    actor_username:
+                        actor
+                            ? actor.username
+                            : "UNKNOWN",
+
+                    actor_name:
+                        actor
+                            ? actor.name
+                            : "UNKNOWN",
+
+
+                    // ------------------------------
+                    // CIBLE
+                    // ------------------------------
+
+                    target_username:
+                        targetUser
+                            ? targetUser.username
+                            : "UNKNOWN",
+
+                    target_name:
+                        targetUser
+                            ? targetUser.name
+                            : "UNKNOWN",
+
+
+                    // ------------------------------
+                    // DÉPARTEMENTS
+                    // ------------------------------
+
+                    target_user_department_ids:
+                        [
+                            ...new Set(
+                                targetUserDepartmentIds
+                            )
+                        ],
+
+                    document_department_ids:
+                        [
+                            ...new Set(
+                                documentDepartmentIds
+                            )
+                        ]
+
+                };
+
+            }
+        );
+}
+
+
+// ==================================================
+// AFFICHER LES LOGS
+// ==================================================
+
+function renderAuditLogs(
+    logs
+) {
+
+    const logList =
+        document.getElementById(
+            "audit-log-list"
+        );
+
+
+    if (!logList) {
+        return;
+    }
+
+
+    logList.innerHTML = "";
+
+
+    if (
+        logs.length === 0
+    ) {
+
+        logList.innerHTML =
+            "<p>NO AUDIT LOGS FOUND</p>";
+
+        return;
+    }
+
+
+    logs.forEach(
+        function(log) {
+
+            const container =
+                document.createElement(
+                    "div"
+                );
+
+
+            container.className =
+                "file audit-log";
+
+
+            const date =
+                log.created_at
+                    ? new Date(
+                        log.created_at
+                    ).toLocaleString(
+                        "fr-FR"
+                    )
+                    : "UNKNOWN DATE";
+
+
+            const actor =
+                log.actor_name &&
+                log.actor_name !==
+                    "UNKNOWN"
+                    ? log.actor_name
+                    : (
+                        log.actor_username ||
+                        "UNKNOWN USER"
+                    );
+
+
+            const action =
+                String(
+                    log.action ||
+                    "UNKNOWN ACTION"
+                ).toUpperCase();
+
+
+            // ==========================================
+            // DÉTERMINER LA CIBLE
+            // ==========================================
+
+            let targetText =
+                "SYSTEM";
+
+
+            if (
+                log.target_user_id !== null &&
+                log.target_user_id !== undefined
+            ) {
+
+                const targetName =
+                    log.target_name &&
+                    log.target_name !== "UNKNOWN"
+                        ? " — " +
+                            log.target_name
+                        : "";
+
+
+                targetText =
+                    "USER #" +
+                    String(
+                        log.target_user_id
+                    ) +
+                    targetName;
+
+            } else if (
+                log.document_id !== null &&
+                log.document_id !== undefined
+            ) {
+
+                targetText =
+                    "DOCUMENT #" +
+                    String(
+                        log.document_id
+                    );
+
+            } else if (
+                log.department_id !== null &&
+                log.department_id !== undefined
+            ) {
+
+                targetText =
+                    "DEPARTMENT #" +
+                    String(
+                        log.department_id
+                    );
+            }
+
+
+            // ==========================================
+            // DÉTAILS
+            // ==========================================
+
+            let detailsText = "";
+
+
+            if (
+                log.details
+            ) {
+
+                let parsedDetails =
+                    log.details;
+
+
+                if (
+                    typeof parsedDetails ===
+                    "string"
+                ) {
+
+                    try {
+
+                        parsedDetails =
+                            JSON.parse(
+                                parsedDetails
+                            );
+
+                    } catch (
+                        error
+                    ) {
+
+                        // Texte normal,
+                        // on conserve la valeur.
+
+                    }
+                }
+
+
+                if (
+                    parsedDetails &&
+                    typeof parsedDetails ===
+                        "object" &&
+                    !Array.isArray(
+                        parsedDetails
+                    )
+                ) {
+
+                    detailsText =
+                        Object.entries(
+                            parsedDetails
+                        )
+                        .map(
+                            function(entry) {
+
+                                const key =
+                                    entry[0];
+
+                                const value =
+                                    entry[1];
+
+
+                                let displayValue;
+
+
+                                if (
+                                    typeof value ===
+                                    "object"
+                                ) {
+
+                                    displayValue =
+                                        JSON.stringify(
+                                            value
+                                        );
+
+                                } else {
+
+                                    displayValue =
+                                        String(
+                                            value
+                                        );
+                                }
+
+
+                                return (
+                                    String(key)
+                                        .replaceAll(
+                                            "_",
+                                            " "
+                                        )
+                                        .toUpperCase() +
+                                    " : " +
+                                    displayValue
+                                );
+                            }
+                        )
+                        .join(
+                            " | "
+                        );
+
+                } else {
+
+                    detailsText =
+                        String(
+                            parsedDetails
+                        );
+                }
+            }
+
+
+            // ==========================================
+            // AFFICHAGE
+            // ==========================================
+
+            container.innerHTML = `
+
+                <div>
+
+                    <strong>
+                        ${escapeHTML(action)}
+                    </strong>
+
+                    <br>
+
+                    <small>
+                        USER :
+                        ${escapeHTML(actor)}
+                    </small>
+
+                    <br>
+
+                    <small>
+                        TARGET :
+                        ${escapeHTML(targetText)}
+                    </small>
+
+                    ${
+                        log.old_value !== null &&
+                        log.old_value !== undefined
+                            ? `
+                                <br>
+                                <small>
+                                    OLD VALUE :
+                                    ${escapeHTML(
+                                        String(
+                                            log.old_value
+                                        )
+                                    )}
+                                </small>
+                              `
+                            : ""
+                    }
+
+                    ${
+                        log.new_value !== null &&
+                        log.new_value !== undefined
+                            ? `
+                                <br>
+                                <small>
+                                    NEW VALUE :
+                                    ${escapeHTML(
+                                        String(
+                                            log.new_value
+                                        )
+                                    )}
+                                </small>
+                              `
+                            : ""
+                    }
+
+                    ${
+                        detailsText
+                            ? `
+                                <br>
+                                <small>
+                                    DETAILS :
+                                    ${escapeHTML(
+                                        detailsText
+                                    )}
+                                </small>
+                              `
+                            : ""
+                    }
+
+                    <br>
+
+                    <small>
+                        DATE :
+                        ${escapeHTML(date)}
+                    </small>
+
+                </div>
+            `;
+
+
+            logList.appendChild(
+                container
+            );
+
+        }
+    );
+}
+
+
+// ==================================================
+// RECHERCHE DANS LES LOGS
+// ==================================================
+
+function filterAuditLogs() {
+
+    const searchInput =
+        document.getElementById(
+            "audit-search"
+        );
+
+
+    if (!searchInput) {
+        return;
+    }
+
+
+    const search =
+        searchInput.value
+            .trim()
+            .toLowerCase();
+
+
+    if (!search) {
+
+        renderAuditLogs(
+            auditLogs
+        );
+
+        return;
+    }
+
+
+    const filteredLogs =
+        auditLogs.filter(
+            function(log) {
+
+                const text =
+                    [
+
+                        log.action,
+
+                        log.target_user_id,
+
+                        log.target_username,
+
+                        log.target_name,
+
+                        log.document_id,
+
+                        log.department_id,
+
+                        log.actor_name,
+
+                        log.actor_username,
+
+                        log.old_value,
+
+                        log.new_value,
+
+                        log.details
+
+                    ]
+                    .join(" ")
+                    .toLowerCase();
+
+
+                return text.includes(
+                    search
+                );
+            }
+        );
+
+
+    renderAuditLogs(
+        filteredLogs
+    );
 }
 
 
@@ -629,10 +1949,6 @@ async function login() {
         await loadCurrentUserDepartments();
 
 
-        // ==================================================
-        // PRÉPARER L'INTERFACE
-        // ==================================================
-
         document
             .getElementById("login-screen")
             .classList
@@ -648,19 +1964,17 @@ async function login() {
         document
             .getElementById("os")
             .classList
-            .remove("hidden");
+            .add("hidden");
 
-
-        // ==================================================
-        // ANIMATION DE BIENVENUE
-        // ==================================================
 
         await playWelcomeAnimation();
 
 
-        // ==================================================
-        // INFORMATIONS UTILISATEUR
-        // ==================================================
+        document
+            .getElementById("os")
+            .classList
+            .remove("hidden");
+
 
         document
             .getElementById("current-user")
@@ -769,6 +2083,204 @@ async function loadCurrentUserDepartments() {
         data || [];
 }
 
+// ==================================================
+// PERMISSIONS ADMIN / AUDIT
+// ==================================================
+
+function hasDepartmentAdminRank() {
+
+    if (!currentProfile) {
+        return false;
+    }
+
+    if (!Array.isArray(currentUserDepartments)) {
+        return false;
+    }
+
+    return currentUserDepartments.some(function(member) {
+
+        return Number(member.department_rank) >= 4;
+
+    });
+}
+
+
+function canOpenAdminPanel() {
+
+    if (!currentProfile) {
+        return false;
+    }
+
+    return (
+        currentProfile.system_role === "admin" ||
+        hasDepartmentAdminRank()
+    );
+}
+
+
+function canViewAuditLogs() {
+
+    if (!currentProfile) {
+        return false;
+    }
+
+    // ADMIN SYSTÈME
+    if (
+        currentProfile.system_role === "admin"
+    ) {
+        return true;
+    }
+
+    // ACC-3 / ACC-4
+    const clearance =
+        Number(
+            currentProfile.clearance || 0
+        );
+
+    if (
+        clearance === 3 ||
+        clearance === 4
+    ) {
+        return true;
+    }
+
+    // RANG 4 / 5 DANS AU MOINS UN DÉPARTEMENT
+    if (
+        Array.isArray(currentUserDepartments)
+    ) {
+
+        return currentUserDepartments.some(
+            function(member) {
+
+                return (
+                    Number(
+                        member.department_rank
+                    ) >= 4
+                );
+
+            }
+        );
+
+    }
+
+    return false;
+}
+
+
+async function getAuditLogAccess() {
+
+    if (!currentProfile) {
+        return {
+            access: false,
+            all: false,
+            departments: []
+        };
+    }
+
+    // ==============================
+    // ADMIN SYSTÈME
+    // ==============================
+
+    if (
+        currentProfile.system_role === "admin"
+    ) {
+
+        return {
+            access: true,
+            all: true,
+            departments: []
+        };
+    }
+
+    // ==============================
+    // ACC-3 / ACC-4
+    // ==============================
+
+    const clearance =
+        Number(
+            currentProfile.clearance || 0
+        );
+
+    if (
+        clearance === 3 ||
+        clearance === 4
+    ) {
+
+        return {
+            access: true,
+            all: true,
+            departments: []
+        };
+    }
+
+    // ==============================
+    // RANK 4 / 5
+    // ==============================
+    // ACC-1 / ACC-2 avec rang 4 ou 5
+    // → uniquement les logs de leurs départements
+    // ==============================
+
+    const departmentIds =
+        Array.isArray(currentUserDepartments)
+            ? currentUserDepartments
+                .filter(
+                    function(member) {
+
+                        return (
+                            Number(
+                                member.department_rank
+                            ) >= 4
+                        );
+
+                    }
+                )
+                .map(
+                    function(member) {
+
+                        return Number(
+                            member.department_id
+                        );
+
+                    }
+                )
+                .filter(
+                    function(id) {
+
+                        return Number.isFinite(id);
+
+                    }
+                )
+            : [];
+
+    const uniqueDepartmentIds =
+        [
+            ...new Set(
+                departmentIds
+            )
+        ];
+
+    if (
+        uniqueDepartmentIds.length > 0
+    ) {
+
+        return {
+            access: true,
+            all: false,
+            departments:
+                uniqueDepartmentIds
+        };
+    }
+
+    // ==============================
+    // AUCUN DROIT
+    // ==============================
+
+    return {
+        access: false,
+        all: false,
+        departments: []
+    };
+}
 
 // ==================================================
 // PERMISSIONS GÉNÉRALES
@@ -776,25 +2288,57 @@ async function loadCurrentUserDepartments() {
 
 function updatePermissions() {
 
-    const adminIcon =
-        document.getElementById("admin-icon");
-
-    if (!adminIcon) return;
-
-
     if (!currentProfile) {
-
-        adminIcon.classList.add(
-            "hidden"
-        );
-
         return;
     }
 
+    const adminIcon =
+        document.getElementById("admin-icon");
 
-    adminIcon.classList.remove(
-        "hidden"
-    );
+    const logsIcon =
+        document.getElementById("logs-icon");
+
+
+    // ==========================================
+    // PANEL ADMIN
+    // ==========================================
+
+    if (adminIcon) {
+
+        if (canOpenAdminPanel()) {
+
+            adminIcon.classList.remove(
+                "hidden"
+            );
+
+        } else {
+
+            adminIcon.classList.add(
+                "hidden"
+            );
+        }
+    }
+
+
+    // ==========================================
+    // AUDIT LOGS
+    // ==========================================
+
+    if (logsIcon) {
+
+        if (canViewAuditLogs()) {
+
+            logsIcon.classList.remove(
+                "hidden"
+            );
+
+        } else {
+
+            logsIcon.classList.add(
+                "hidden"
+            );
+        }
+    }
 }
 
 
@@ -802,7 +2346,11 @@ function updatePermissions() {
 // OUVRIR UNE FENÊTRE
 // ==================================================
 
-function openWindow(id) {
+async function openWindow(id) {
+
+    // ==========================================
+    // PANEL ADMIN
+    // ==========================================
 
     if (id === "admin") {
 
@@ -815,12 +2363,78 @@ function openWindow(id) {
             return;
         }
 
+        if (!canOpenAdminPanel()) {
+
+            alert(
+                "ACCESS DENIED"
+            );
+
+            return;
+        }
 
         openAdmin();
 
         return;
     }
 
+// ==========================================
+// AUDIT LOGS
+// ==========================================
+
+if (id === "logs") {
+
+    if (!currentProfile) {
+
+        alert(
+            "ACCESS DENIED"
+        );
+
+        return;
+    }
+
+
+    // ACC-3 / ACC-4 / ADMIN
+    if (!canViewAuditLogs()) {
+
+        alert(
+            "ACCESS DENIED"
+        );
+
+        return;
+    }
+
+
+    const logsWindow =
+        document.getElementById(
+            "logs"
+        );
+
+
+    if (logsWindow) {
+
+        logsWindow
+            .classList
+            .remove("hidden");
+    }
+
+
+    loadAuditLogs();
+
+    return;
+}
+
+    // ==========================================
+    // AUTRES FENÊTRES
+    // ==========================================
+
+    const win =
+        document.getElementById(id);
+
+    if (!win) {
+        return;
+    }
+
+    win.classList.remove("hidden");
 
     const windowElement =
         document.getElementById(id);
@@ -890,6 +2504,7 @@ async function logout() {
     currentProfile = null;
     currentUserDepartments = [];
     selectedDocumentDepartments = [];
+    auditLogs = [];
 
 
     document
@@ -936,6 +2551,9 @@ async function logout() {
 
             }
         );
+
+
+    updatePermissions();
 }
 
 
@@ -1846,7 +3464,9 @@ async function addSelectedUserDepartment() {
                 function(member) {
 
                     return (
-                        member.department_id ===
+                        Number(
+                            member.department_id
+                        ) ===
                         departmentId
                     );
                 }
@@ -1861,6 +3481,18 @@ async function addSelectedUserDepartment() {
 
         return;
     }
+
+
+    const department =
+        departments.find(
+            function(dep) {
+
+                return (
+                    Number(dep.id) ===
+                    departmentId
+                );
+            }
+        );
 
 
     const {
@@ -1902,6 +3534,30 @@ async function addSelectedUserDepartment() {
     }
 
 
+    await createAuditLog(
+        "DEPARTMENT_ADDED",
+        "USER",
+        selectedAdminUser.id,
+        {
+
+            username:
+                selectedAdminUser.username,
+
+            department:
+                department
+                    ? department.name
+                    : departmentId,
+
+            rank:
+                rank,
+
+            department_id:
+                departmentId
+
+        }
+    );
+
+
     await loadUserDepartments(
         selectedAdminUser.id
     );
@@ -1919,6 +3575,18 @@ async function removeUserDepartment(
     if (!selectedAdminUser) {
         return;
     }
+
+
+    const membership =
+        selectedAdminUserDepartments.find(
+            function(member) {
+
+                return (
+                    member.id ===
+                    membershipId
+                );
+            }
+        );
 
 
     const confirmed =
@@ -1964,6 +3632,35 @@ async function removeUserDepartment(
     }
 
 
+    await createAuditLog(
+        "DEPARTMENT_REMOVED",
+        "USER",
+        selectedAdminUser.id,
+        {
+
+            username:
+                selectedAdminUser.username,
+
+            department:
+                membership &&
+                membership.departments
+                    ? membership.departments.name
+                    : "UNKNOWN",
+
+            previous_rank:
+                membership
+                    ? membership.department_rank
+                    : "UNKNOWN",
+
+            department_id:
+                membership
+                    ? membership.department_id
+                    : null
+
+        }
+    );
+
+
     await loadUserDepartments(
         selectedAdminUser.id
     );
@@ -1991,6 +3688,38 @@ async function changeDepartmentRank(
         alert(
             "INVALID DEPARTMENT RANK"
         );
+
+        return;
+    }
+
+
+    const membership =
+        selectedAdminUserDepartments.find(
+            function(member) {
+
+                return (
+                    member.id ===
+                    membershipId
+                );
+            }
+        );
+
+
+    if (!membership) {
+        return;
+    }
+
+
+    const oldRank =
+        Number(
+            membership.department_rank
+        );
+
+
+    if (
+        oldRank ===
+        newRank
+    ) {
 
         return;
     }
@@ -2031,6 +3760,33 @@ async function changeDepartmentRank(
 
         return;
     }
+
+
+    await createAuditLog(
+        "DEPARTMENT_RANK_CHANGED",
+        "USER",
+        selectedAdminUser.id,
+        {
+
+            username:
+                selectedAdminUser.username,
+
+            department:
+                membership.departments
+                    ? membership.departments.name
+                    : "UNKNOWN",
+
+            old_rank:
+                oldRank,
+
+            new_rank:
+                newRank,
+
+            department_id:
+                membership.department_id
+
+        }
+    );
 
 
     await loadUserDepartments(
@@ -2075,6 +3831,21 @@ async function saveUserClearance() {
     }
 
 
+    const oldClearance =
+        Number(
+            selectedAdminUser.clearance
+        );
+
+
+    if (
+        oldClearance ===
+        newClearance
+    ) {
+
+        return;
+    }
+
+
     const {
         error
     } =
@@ -2108,6 +3879,25 @@ async function saveUserClearance() {
 
         return;
     }
+
+
+    await createAuditLog(
+        "CLEARANCE_CHANGED",
+        "USER",
+        selectedAdminUser.id,
+        {
+
+            username:
+                selectedAdminUser.username,
+
+            old_clearance:
+                oldClearance,
+
+            new_clearance:
+                newClearance
+
+        }
+    );
 
 
     selectedAdminUser.clearance =
@@ -2173,6 +3963,20 @@ async function saveUserSystemRole() {
     }
 
 
+    const oldRole =
+        selectedAdminUser.system_role ||
+        "user";
+
+
+    if (
+        oldRole ===
+        newRole
+    ) {
+
+        return;
+    }
+
+
     const {
         error
     } =
@@ -2208,6 +4012,25 @@ async function saveUserSystemRole() {
     }
 
 
+    await createAuditLog(
+        "SYSTEM_ROLE_CHANGED",
+        "USER",
+        selectedAdminUser.id,
+        {
+
+            username:
+                selectedAdminUser.username,
+
+            old_role:
+                oldRole,
+
+            new_role:
+                newRole
+
+        }
+    );
+
+
     selectedAdminUser.system_role =
         newRole;
 
@@ -2234,6 +4057,9 @@ async function saveUserSystemRole() {
     renderUsers(
         adminUsers
     );
+
+
+    updatePermissions();
 }
 
 
@@ -2882,6 +4708,7 @@ function setupDocumentDepartmentUI() {
                 <select
                     id="document-department-rank"
                 >
+
                     <option value="1">
                         RANK 1
                     </option>
@@ -2901,6 +4728,7 @@ function setupDocumentDepartmentUI() {
                     <option value="5">
                         RANK 5
                     </option>
+
                 </select>
 
                 <button
@@ -3025,7 +4853,6 @@ function addDocumentDepartment() {
 
 
     if (!departmentId) {
-
         return;
     }
 
@@ -3472,25 +5299,6 @@ async function addDocument() {
             error
         );
 
-        console.error(
-            "MESSAGE:",
-            error.message
-        );
-
-        console.error(
-            "DETAILS:",
-            error.details
-        );
-
-        console.error(
-            "HINT:",
-            error.hint
-        );
-
-        console.error(
-            "CODE:",
-            error.code
-        );
 
         alert(
             "ERREUR SUPABASE :\n\n" +
@@ -3564,6 +5372,37 @@ async function addDocument() {
             return;
         }
     }
+
+
+    await createAuditLog(
+        "DOCUMENT_CREATED",
+        "DOCUMENT",
+        documentData.id,
+        {
+
+            document_name:
+                name,
+
+            google_url:
+                url,
+
+            minimum_clearance:
+                minimumClearance,
+
+            departments:
+                selectedDocumentDepartments.map(
+                    function(rule) {
+
+                        return (
+                            rule.departmentName +
+                            " RANK " +
+                            rule.rank
+                        );
+                    }
+                )
+
+        }
+    );
 
 
     nameInput.value = "";
@@ -3651,255 +5490,227 @@ async function checkSession() {
 
         return;
     }
-
-
     currentProfile =
         profile;
-
-
     await loadCurrentUserDepartments();
-
-
     document
         .getElementById("login-screen")
         .classList
         .add("hidden");
-
-
     document
         .getElementById("register-screen")
         .classList
         .add("hidden");
-
-
     document
         .getElementById("os")
         .classList
         .remove("hidden");
-
-
     document
         .getElementById("current-user")
         .textContent =
         profile.name;
-
-
     document
         .getElementById("clearance")
         .textContent =
         "ACC-" +
         profile.clearance;
-
-
     document
         .getElementById("system-user")
         .textContent =
         profile.name;
-
-
     document
         .getElementById("system-clearance")
         .textContent =
         "ACC-" +
         profile.clearance;
-
-
     updatePermissions();
 }
-
-
 // ==================================================
 // DRAG & DROP WINDOWS
 // ==================================================
-
 function makeWindowsDraggable() {
 
     const windows =
-        document.querySelectorAll(".window");
+        document.querySelectorAll(
+            ".window"
+        );
+    windows.forEach(
+        function(windowElement) {
+
+            if (
+                windowElement.dataset.draggable ===
+                "true"
+            ) {
+
+                return;
+            }
+            const header =
+                windowElement.querySelector(
+                    ".window-header"
+                );
+            const dragArea =
+                header;
+            if (!dragArea) {
+                return;
+            }
+            windowElement.dataset.draggable =
+                "true";
+            let isDragging = false;
+
+            let offsetX = 0;
+            let offsetY = 0;
+            dragArea.addEventListener(
+                "mousedown",
+                function(event) {
+
+                    if (
+                        event.button !==
+                        0
+                    ) {
+
+                        return;
+                    }
 
 
-    windows.forEach(function(windowElement) {
-
-        if (
-            windowElement.dataset.draggable === "true"
-        ) {
-            return;
-        }
+                    isDragging = true;
 
 
-        const header =
-            windowElement.querySelector(
-                ".window-header"
+                    const rect =
+                        windowElement
+                            .getBoundingClientRect();
+
+
+                    offsetX =
+                        event.clientX -
+                        rect.left;
+
+
+                    offsetY =
+                        event.clientY -
+                        rect.top;
+
+
+                    document
+                        .querySelectorAll(
+                            ".window"
+                        )
+                        .forEach(
+                            function(win) {
+
+                                win.style.zIndex =
+                                    "10";
+
+                            }
+                        );
+
+
+                    windowElement.style.zIndex =
+                        "100";
+
+
+                    document.body.style.userSelect =
+                        "none";
+
+
+                    event.preventDefault();
+
+                }
             );
 
 
-        const dragArea = header;
+            document.addEventListener(
+                "mousemove",
+                function(event) {
+
+                    if (!isDragging) {
+                        return;
+                    }
 
 
-        if (!dragArea) {
-            return;
+                    let newX =
+                        event.clientX -
+                        offsetX;
+
+
+                    let newY =
+                        event.clientY -
+                        offsetY;
+
+
+                    const maxX =
+                        window.innerWidth -
+                        windowElement.offsetWidth;
+
+
+                    const maxY =
+                        window.innerHeight -
+                        windowElement.offsetHeight;
+
+
+                    newX =
+                        Math.max(
+                            0,
+                            Math.min(
+                                newX,
+                                maxX
+                            )
+                        );
+
+
+                    newY =
+                        Math.max(
+                            0,
+                            Math.min(
+                                newY,
+                                maxY
+                            )
+                        );
+
+
+                    windowElement.style.left =
+                        newX + "px";
+
+
+                    windowElement.style.top =
+                        newY + "px";
+
+
+                    windowElement.style.right =
+                        "auto";
+
+
+                    windowElement.style.transform =
+                        "none";
+
+                }
+            );
+
+
+            document.addEventListener(
+                "mouseup",
+                function() {
+
+                    if (!isDragging) {
+                        return;
+                    }
+
+
+                    isDragging = false;
+
+
+                    document.body.style.userSelect =
+                        "";
+
+                }
+            );
+
         }
-
-
-        windowElement.dataset.draggable =
-            "true";
-
-
-        let isDragging = false;
-
-        let offsetX = 0;
-        let offsetY = 0;
-
-
-        dragArea.addEventListener(
-            "mousedown",
-            function(event) {
-
-                if (event.button !== 0) {
-                    return;
-                }
-
-
-                isDragging = true;
-
-
-                const rect =
-                    windowElement.getBoundingClientRect();
-
-
-                offsetX =
-                    event.clientX -
-                    rect.left;
-
-
-                offsetY =
-                    event.clientY -
-                    rect.top;
-
-
-                document
-                    .querySelectorAll(".window")
-                    .forEach(
-                        function(win) {
-
-                            win.style.zIndex =
-                                "10";
-
-                        }
-                    );
-
-
-                windowElement.style.zIndex =
-                    "100";
-
-
-                document.body.style.userSelect =
-                    "none";
-
-
-                event.preventDefault();
-
-            }
-        );
-
-
-        document.addEventListener(
-            "mousemove",
-            function(event) {
-
-                if (!isDragging) {
-                    return;
-                }
-
-
-                let newX =
-                    event.clientX -
-                    offsetX;
-
-
-                let newY =
-                    event.clientY -
-                    offsetY;
-
-
-                const maxX =
-                    window.innerWidth -
-                    windowElement.offsetWidth;
-
-
-                const maxY =
-                    window.innerHeight -
-                    windowElement.offsetHeight;
-
-
-                newX =
-                    Math.max(
-                        0,
-                        Math.min(
-                            newX,
-                            maxX
-                        )
-                    );
-
-
-                newY =
-                    Math.max(
-                        0,
-                        Math.min(
-                            newY,
-                            maxY
-                        )
-                    );
-
-
-                windowElement.style.left =
-                    newX + "px";
-
-
-                windowElement.style.top =
-                    newY + "px";
-
-
-                windowElement.style.right =
-                    "auto";
-
-
-                windowElement.style.transform =
-                    "none";
-
-            }
-        );
-
-
-        document.addEventListener(
-            "mouseup",
-            function() {
-
-                if (!isDragging) {
-                    return;
-                }
-
-
-                isDragging = false;
-
-
-                document.body.style.userSelect =
-                    "";
-
-            }
-        );
-
-    });
-
+    );
 }
-
-
 // ==================================================
 // INITIALISER LE DRAG
 // ==================================================
-
 makeWindowsDraggable();
-
 
 // ==================================================
 // INITIALISATION
@@ -3913,11 +5724,7 @@ document.addEventListener(
 
     }
 );
-
-
 checkSession();
-
-
 console.log(
     "ANTHER OS : JavaScript initialisé"
 );
