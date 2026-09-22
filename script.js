@@ -4507,7 +4507,7 @@ function renderDocuments(
 
 
             openButton.textContent =
-                "OUVRIR";
+                "OPEN";
 
 
             openButton.onclick =
